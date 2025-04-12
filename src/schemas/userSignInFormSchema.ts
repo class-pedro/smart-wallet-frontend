@@ -23,7 +23,7 @@ export const userSignInFormSchema = z.object({
   cellphone: z
     .string()
     .regex(
-      /^\(\d{2}\)\d{4,5}-\d{4}$/,
+      /^(\(\d{2}\)\d{4,5}-\d{4}|\d{10,11})$/,
       'O número de celular deve conter 10 ou 11 dígitos'
     ),
 });
