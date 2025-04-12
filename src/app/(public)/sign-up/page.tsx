@@ -1,6 +1,5 @@
 'use client';
 import Image from 'next/image';
-
 import { Button } from '@/components/ui/button';
 import formImgLarge from '../../../../public/illustrations/sign-up/finance-app-cuate.svg';
 import SignUpForm from '@/components/forms/SignUpForm/SignUpForm';
