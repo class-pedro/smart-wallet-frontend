@@ -23,6 +23,7 @@ interface InputProps<FormType extends FieldValues> {
   errors: FieldError | undefined;
   errorMessage?: string;
   value?: string;
+  autoComplete?: 'on' | 'off';
   maxLength?: number;
   IconOptions?: IconOptions;
   register: UseFormRegister<FormType>;
@@ -39,6 +40,7 @@ export function Input<FormType extends FieldValues>({
   errors,
   errorMessage,
   value,
+  autoComplete,
   maxLength,
   IconOptions,
   register,
@@ -83,6 +85,7 @@ export function Input<FormType extends FieldValues>({
           type={validatedInputType}
           value={value}
           maxLength={maxLength}
+          autoComplete={autoComplete ?? 'new-password'}
           className={
             'w-full text-gray-700 outline-none placeholder:text-gray-400'
           }
