@@ -9,19 +9,24 @@ import {
 export function useSignUpForm() {
   const {
     register,
+    getValues,
     handleSubmit,
     formState: { errors },
   } = useForm<IUserSignInForm>({
     resolver: zodResolver(userSignInFormSchema),
   });
 
+  const registerUserEmail = getValues('email');
   const [maskedCPF, setMaskedCPF] = useState<string>('');
   const [maskedCellphone, setMaskedCellphone] = useState<string>('');
+  const [isRegistrationRecived, setIsRegistrationRecived] =
+    useState<boolean>(false);
 
   const onSubmit: SubmitHandler<IUserSignInForm> = (
     payload: IUserSignInForm
   ) => {
     console.log('payload: ', payload);
+    setIsRegistrationRecived(true);
   };
 
   return {
@@ -32,6 +37,8 @@ export function useSignUpForm() {
     handleSubmit,
     setMaskedCPF,
     maskedCellphone,
+    registerUserEmail,
     setMaskedCellphone,
+    isRegistrationRecived,
   };
 }
