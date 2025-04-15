@@ -5,10 +5,17 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --swGreen500: #58cc02;
-  --swGreen700: #377d02;
+  --swBlue50: #eff9ff;
+  --swBlue100: #def2ff;
+  --swBlue200: #b6e8ff;
+  --swBlue300: #75d8ff;
+  --swBlue400: #2cc5ff;
   --swBlue500: #00b3ff;
-  --swYellow500: #ffbd00;
+  --swBlue600: #008bd4;
+  --swBlue700: #006eab;
+  --swBlue800: #005d8d;
+  --swBlue900: #064d74;
+  --swBlue950: #04314d;
   --background: oklch(1 0 0);
   --foreground: oklch(0.129 0.042 264.695);
   --card: oklch(1 0 0);
@@ -47,10 +54,17 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-swGreen500: var(--swGreen500);
-  --color-swGreen700: var(--swGreen700);
+  --color-swBlue50: var(--swBlue50);
+  --color-swBlue100: var(--swBlue100);
+  --color-swBlue200: var(--swBlue200);
+  --color-swBlue300: var(--swBlue300);
+  --color-swBlue400: var(--swBlue400);
   --color-swBlue500: var(--swBlue500);
-  --color-swYellow500: var(--swYellow500);
+  --color-swBlue600: var(--swBlue600);
+  --color-swBlue700: var(--swBlue700);
+  --color-swBlue800: var(--swBlue800);
+  --color-swBlue900: var(--swBlue900);
+  --color-swBlue950: var(--swBlue950);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-montserrat: var(--font-montserrat);
