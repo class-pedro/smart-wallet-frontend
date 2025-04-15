@@ -5,40 +5,63 @@ import {
   IUserSignInForm,
   userSignInFormSchema,
 } from '@/schemas/userSignInFormSchema';
+import { useSignUp } from '@/api/endpoints/hooks/useSignUp';
+import { onlyDigits } from '@/utils/onlyDigits';
 
 export function useSignUpForm() {
   const {
     register,
     getValues,
     handleSubmit,
-    formState: { errors },
+    formState: { errors: formErrors },
   } = useForm<IUserSignInForm>({
     resolver: zodResolver(userSignInFormSchema),
   });
 
+  const {
+    userSignUpMutate,
+    userSignUpErrors,
+    userSignUpIsError,
+    userSignUpIsLoading,
+    userSignUpIsSuccess,
+  } = useSignUp();
+
+  const isShowForm =
+    !userSignUpIsSuccess && !userSignUpIsLoading && !userSignUpIsError;
+  const isShowSuccessCard =
+    userSignUpIsSuccess && !userSignUpIsLoading && !userSignUpIsError;
   const registerUserEmail = getValues('email');
   const [maskedCPF, setMaskedCPF] = useState<string>('');
   const [maskedCellphone, setMaskedCellphone] = useState<string>('');
-  const [isRegistrationRecived, setIsRegistrationRecived] =
-    useState<boolean>(false);
 
-  const onSubmit: SubmitHandler<IUserSignInForm> = (
+  const onSubmit: SubmitHandler<IUserSignInForm> = async (
     payload: IUserSignInForm
   ) => {
-    console.log('payload: ', payload);
-    setIsRegistrationRecived(true);
+    const { document, cellphone } = payload;
+    const formattedPayload = {
+      ...payload,
+      document: onlyDigits(document),
+      cellphone: onlyDigits(cellphone),
+    };
+
+    const req = await userSignUpMutate(formattedPayload);
+
+    console.log('res', req);
   };
 
   return {
-    errors,
     onSubmit,
     register,
     maskedCPF,
+    formErrors,
+    isShowForm,
     handleSubmit,
     setMaskedCPF,
     maskedCellphone,
+    userSignUpErrors,
     registerUserEmail,
+    isShowSuccessCard,
     setMaskedCellphone,
-    isRegistrationRecived,
+    userSignUpIsLoading,
   };
 }
