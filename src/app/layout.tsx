@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Montserrat } from 'next/font/google';
 import './globals.css';
+import { ReactQueryProvider } from '@/lib/react-query/ReactQueryProvider';
 
 const montserrat = Montserrat({
   variable: '--font-montserrat',
@@ -23,7 +24,7 @@ export default function RootLayout({
         className={`${montserrat.variable} 
         antialiased`}
       >
-        {children}
+        <ReactQueryProvider>{children}</ReactQueryProvider>
       </body>
     </html>
   );
