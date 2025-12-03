@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Carrega token dos cookies na primeira renderização
   useEffect(() => {
     const cookies = parseCookies();
-    setToken(cookies['access_token'] ?? null);
+    setToken(cookies['t'] ?? null);
     setIsLoading(false);
   }, []);
 
