@@ -25,24 +25,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Carrega token dos cookies na primeira renderização
-  useEffect(() => {
+  const loadToken = useCallback(() => {
+    setIsLoading(true);
     const cookies = parseCookies();
     setToken(cookies['t'] ?? null);
     setIsLoading(false);
   }, []);
 
-  const signIn = useCallback(async (payload: LoginPayload) => {
-    const data = await login(payload);
+  useEffect(() => {
+    loadToken();
+  }, [loadToken]);
 
-    if (!data.access_token) {
-      throw new Error('Falha ao obter token!');
+  const signIn = useCallback(async (payload: LoginPayload) => {
+    setIsLoading(true);
+    try {
+      const data = await login(payload);
+
+      if (!data.access_token) throw new Error('Falha ao obter token!');
+
+      setCookie(null, 't', data.access_token, {
+        path: '/',
+        maxAge: 60 * 60,
+      });
+      setToken(data.access_token);
+    } finally {
+      setIsLoading(false);
     }
-    setCookie(null, 't', data.access_token, {
-      path: '/',
-      maxAge: 60 * 60,
-    });
-    setToken(data.access_token);
   }, []);
 
   const logout = useCallback(() => {

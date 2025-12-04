@@ -10,11 +10,11 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push('/login');
+      router.replace('/login');
     }
-  }, [isAuthenticated, isLoading]);
+  }, [isAuthenticated, isLoading, router]);
 
-  if (isLoading) return null; // loading global
+  if (isLoading || !isAuthenticated) return null; // loading global
 
   return <>{children}</>;
 }
