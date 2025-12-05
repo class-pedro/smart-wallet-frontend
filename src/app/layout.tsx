@@ -6,7 +6,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 
 const manrope = Manrope({
   subsets: ['latin'],
-  variable: '--font-manrope', // opcional (mas bom pra usar com Tailwind)
+  variable: '--font-manrope',
 });
 
 export const metadata: Metadata = {
