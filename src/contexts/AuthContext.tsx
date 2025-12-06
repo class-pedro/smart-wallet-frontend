@@ -9,10 +9,11 @@ import {
 } from 'react';
 import { destroyCookie, parseCookies, setCookie } from 'nookies';
 import { LoginPayload } from '@/types/user';
-import { login } from '@/services/auth.service';
+import { login, me } from '@/services/auth.service';
 
 type AuthContextData = {
   token: string | null;
+  walletId: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   signIn: (payload: LoginPayload) => Promise<void>;
@@ -23,7 +24,8 @@ export const AuthContext = createContext({} as AuthContextData);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [walletId, setWalletId] = useState<string | null>(null);
 
   const loadToken = useCallback(() => {
     setIsLoading(true);
@@ -39,15 +41,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = useCallback(async (payload: LoginPayload) => {
     setIsLoading(true);
     try {
-      const data = await login(payload);
+      const loginResponse = await login(payload);
 
-      if (!data.access_token) throw new Error('Falha ao obter token!');
+      if (!loginResponse.access_token) throw new Error('Falha ao obter token!');
 
-      setCookie(null, 't', data.access_token, {
+      setCookie(null, 't', loginResponse.access_token, {
         path: '/',
         maxAge: 60 * 60,
       });
-      setToken(data.access_token);
+      setToken(loginResponse.access_token);
+
+      const meResponse = await me(loginResponse.access_token);
+
+      if (!meResponse.walletId)
+        throw new Error('Falha ao obter dados do usuário!');
+
+      setWalletId(meResponse.walletId);
     } finally {
       setIsLoading(false);
     }
@@ -55,12 +64,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(() => {
     destroyCookie(null, 't', { path: '/' });
+    setWalletId(null);
     setToken(null);
   }, []);
 
   const value = useMemo(
     () => ({
       token,
+      walletId,
       isAuthenticated: !!token,
       isLoading,
       signIn,
