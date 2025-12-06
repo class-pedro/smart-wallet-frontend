@@ -1,3 +1,4 @@
+import { MainMenu } from '@/components/MainMenu';
 import { AuthGuard } from '@/lib/authGuard';
 
 export default function ProtectedLayout({
@@ -7,11 +8,9 @@ export default function ProtectedLayout({
 }) {
   return (
     <main>
-      {' '}
-      <header className='bg-green-300 w-full h-10 flex  justify-center items-center'>
-        <p className='text-gray-700 font-medium'>Logado</p>
-      </header>
-      <AuthGuard>{children}</AuthGuard>
+      <AuthGuard>
+        <MainMenu>{children}</MainMenu>
+      </AuthGuard>
     </main>
   );
 }
