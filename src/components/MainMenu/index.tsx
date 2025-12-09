@@ -3,7 +3,8 @@
 import { menuOptions } from '@/constants/menu';
 import React from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { ChevronLeft, PanelTopOpen } from 'lucide-react';
+import { PanelTopOpen } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 type MainMenuProps = {
   children: React.ReactNode;
@@ -11,6 +12,7 @@ type MainMenuProps = {
 
 export function MainMenu({ children }: MainMenuProps) {
   const { push } = useRouter();
+  const { logout } = useAuth();
 
   function getPageTitleByPath() {
     let pathName: string | string[] = usePathname();
@@ -22,25 +24,33 @@ export function MainMenu({ children }: MainMenuProps) {
   }
 
   return (
-    <div className='bg-primary drawer lg:drawer-open'>
+    <div className='drawer lg:drawer-open'>
       <input id='my-drawer-4' type='checkbox' className='drawer-toggle' />
       <div className='drawer-content'>
         {/* Navbar */}
-        <nav className='navbar w-full'>
-          <label
-            htmlFor='my-drawer-4'
-            aria-label='open sidebar'
-            className='btn btn-square btn-ghost lg:hidden'
+        <nav className='navbar bg-base-200 w-full max-h-16 flex items-center justify-between px-5 shadow-[0_2px_8px_rgba(0,0,0,0.08)]'>
+          <div className='w-fit flex items-center gap-2'>
+            <label
+              htmlFor='my-drawer-4'
+              aria-label='open sidebar'
+              className='p-2 rounded cursor-pointer lg:hidden hover:opacity-70'
+            >
+              <PanelTopOpen className='rotate-270' />
+            </label>
+            <h1 className='font-semibold'>{`${getPageTitleByPath()}`}</h1>
+          </div>
+          <button
+            className='bg-red-400 text-white font-medium p-2 w-full max-w-16 rounded cursor-pointer hover:opacity-80'
+            onClick={logout}
           >
-            <PanelTopOpen className='rotate-270' />
-          </label>
-          <div className='px-4'>{`${getPageTitleByPath()}`}</div>
+            Sair
+          </button>
         </nav>
         {children}
       </div>
 
-      <div className='drawer-side is-drawer-close:overflow-visible'>
-        <div className='flex min-h-full flex-col items-start is-drawer-close:w-14 is-drawer-open:w-64'>
+      <div className='drawer-side shadow-[8px_0_16px_-4px_rgba(0,0,0,0.12)] is-drawer-close:overflow-visible'>
+        <div className='bg-base-200 flex min-h-full flex-col items-start is-drawer-close:w-14 is-drawer-open:w-64'>
           {/* Sidebar content here */}
           <ul className='menu w-full content-center p-0 gap-1'>
             <div className='w-full h-16 flex justify-between items-center py-4 is-drawer-close:justify-center is-drawer-open:px-2 border-b border-gray-500'>
@@ -55,7 +65,7 @@ export function MainMenu({ children }: MainMenuProps) {
               <label
                 htmlFor='my-drawer-4'
                 aria-label='open sidebar'
-                className='w-full p-2 flex justify-center items-center rounded cursor-pointer hover:bg-[#ecf9ff17] is-drawer-open:w-10'
+                className='w-full p-2 flex justify-center items-center rounded cursor-pointer hover:opacity-70 is-drawer-open:w-10'
               >
                 {/* Sidebar toggle icon */}
                 <PanelTopOpen className='rotate-270 transition-transform duration-500 is-drawer-open:scale-y-[-1]' />
