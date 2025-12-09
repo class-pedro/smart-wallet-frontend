@@ -1,4 +1,5 @@
 import { MainMenu } from '@/components/MainMenu';
+import ProtectedLayoutCard from '@/components/ProtectedLayoutCard';
 import { AuthGuard } from '@/lib/authGuard';
 
 export default function ProtectedLayout({
@@ -9,7 +10,9 @@ export default function ProtectedLayout({
   return (
     <main>
       <AuthGuard>
-        <MainMenu>{children}</MainMenu>
+        <MainMenu>
+          <ProtectedLayoutCard>{children}</ProtectedLayoutCard>
+        </MainMenu>
       </AuthGuard>
     </main>
   );
