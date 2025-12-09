@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { OptionItem } from '../../../../../../types/option';
+import { OptionItem } from '../../../../../../../types/option';
 import { getCardTypes } from '@/services/card.service';
 import { useAuth } from '@/hooks/useAuth';
-import { ExpenseFormData } from '../../types';
+import { ExpenseFormData } from '../../../types';
 
 export function useAddExpenseForm() {
   const { token, walletId } = useAuth();
