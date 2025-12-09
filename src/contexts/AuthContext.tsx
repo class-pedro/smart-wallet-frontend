@@ -34,9 +34,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(false);
   }, []);
 
+  const loadWalletId = useCallback(() => {
+    setIsLoading(true);
+    const cookies = parseCookies();
+    setWalletId(cookies['wid'] ?? null);
+    setIsLoading(false);
+  }, []);
+
   useEffect(() => {
     loadToken();
-  }, [loadToken]);
+    loadWalletId();
+  }, [loadToken, loadWalletId]);
 
   const signIn = useCallback(async (payload: LoginPayload) => {
     setIsLoading(true);
@@ -55,7 +63,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (!meResponse.walletId)
         throw new Error('Falha ao obter dados do usuário!');
-
+      setCookie(null, 'wid', meResponse.walletId, {
+        path: '/',
+        maxAge: 60 * 60,
+      });
       setWalletId(meResponse.walletId);
     } finally {
       setIsLoading(false);
@@ -64,6 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(() => {
     destroyCookie(null, 't', { path: '/' });
+    destroyCookie(null, 'wid', { path: '/' });
     setWalletId(null);
     setToken(null);
   }, []);
