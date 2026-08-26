@@ -20,6 +20,11 @@ const GOOGLE_AUTH_ENDPOINT = `${API_URL}/auth/google`;
 const COMPLETE_PROFILE_ENDPOINT = `${API_URL}/auth/complete-profile`;
 const TOKEN_STORAGE_KEY = "smart-wallet:token";
 
+/** Readable by the proxy (route protection) and the dashboard (walletId), so it can't be httpOnly. */
+export const TOKEN_COOKIE_NAME = "smart_wallet_token";
+export const WALLET_ID_COOKIE_NAME = "smart_wallet_wallet_id";
+const COOKIE_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
+
 const GENERIC_ERROR_MESSAGE =
   "Não foi possível completar a autenticação. Por favor, tente novamente.";
 
@@ -61,9 +66,28 @@ function decodeTokenClaims(token: string): AppTokenClaims {
   }
 }
 
+function setCookie(name: string, value: string) {
+  const secure = window.location.protocol === "https:" ? "; secure" : "";
+  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${COOKIE_MAX_AGE_SECONDS}; samesite=lax${secure}`;
+}
+
+function deleteCookie(name: string) {
+  document.cookie = `${name}=; path=/; max-age=0; samesite=lax`;
+}
+
+function getCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 function storeAccessToken(token: string): AppTokenClaims {
   const claims = decodeTokenClaims(token);
   localStorage.setItem(TOKEN_STORAGE_KEY, token);
+  setCookie(TOKEN_COOKIE_NAME, token);
+  if (claims.walletId) {
+    setCookie(WALLET_ID_COOKIE_NAME, claims.walletId);
+  }
   return claims;
 }
 
@@ -199,8 +223,15 @@ export function getStoredToken(): string | null {
   return localStorage.getItem(TOKEN_STORAGE_KEY);
 }
 
+/** The wallet id the backend embeds in the access token, read from the cookie set at login. */
+export function getWalletId(): string | null {
+  return getCookie(WALLET_ID_COOKIE_NAME);
+}
+
 export function signOut(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(TOKEN_STORAGE_KEY);
+  deleteCookie(TOKEN_COOKIE_NAME);
+  deleteCookie(WALLET_ID_COOKIE_NAME);
   window.google?.accounts.id.disableAutoSelect();
 }
