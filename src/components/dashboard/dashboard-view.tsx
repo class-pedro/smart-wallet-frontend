@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getWalletId, signOut } from "@/lib/auth";
 import { fetchDashboard, type DashboardData } from "@/lib/dashboard";
-import { WalletIcon } from "@/components/login/icons";
+import { Sidebar } from "@/components/layout/sidebar";
+import { Topbar } from "@/components/layout/topbar";
 
 type ViewState = "loading" | "success" | "empty" | "error";
 
@@ -92,68 +93,25 @@ export function DashboardView() {
   }
 
   return (
-    <div className="flex min-h-screen bg-surface-bright">
-      <aside className="fixed left-0 top-0 hidden h-full w-64 flex-col border-r border-outline-variant bg-surface-container-lowest md:flex">
-        <div className="flex items-center gap-2 p-6">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20">
-            <WalletIcon className="h-6 w-6 text-on-primary" />
-          </div>
-          <span className="text-[20px] font-semibold tracking-tight text-on-surface">
-            Smart Wallet
-          </span>
-        </div>
-        <nav className="mt-2 flex-1 px-4">
-          <span className="flex items-center gap-3 rounded-lg bg-primary-container px-4 py-2.5 font-medium text-on-primary-container">
-            <span className="material-symbols-outlined">dashboard</span>
-            Dashboard
-          </span>
-        </nav>
-        <div className="border-t border-outline-variant p-4">
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface md:cursor-pointer"
-          >
-            <span className="material-symbols-outlined">logout</span>
-            Sair
-          </button>
-        </div>
-      </aside>
+    <div className="min-h-screen bg-surface">
+      <Sidebar activePath="dashboard" onLogout={handleLogout} />
+      <Topbar onLogout={handleLogout} />
 
-      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-outline-variant bg-surface-container-lowest px-4 py-3 md:hidden">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <WalletIcon className="h-5 w-5 text-on-primary" />
-          </div>
-          <span className="text-base font-semibold text-on-surface">Smart Wallet</span>
-        </div>
-        <button
-          type="button"
-          onClick={handleLogout}
-          aria-label="Sair"
-          className="text-on-surface-variant transition-colors hover:text-on-surface md:cursor-pointer"
-        >
-          <span className="material-symbols-outlined">logout</span>
-        </button>
-      </header>
-
-      <div className="flex w-full flex-col md:pl-64">
-        <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 p-4 md:p-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="pt-14 md:pl-sidebar-width md:pt-16">
+        <main className="flex w-full flex-col gap-space-lg px-space-md py-space-lg md:px-space-lg">
+          <div className="flex flex-col gap-space-md sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h1 className="text-[31.25px] font-semibold tracking-tight text-on-surface">
-                Dashboard
-              </h1>
-              <p className="text-sm text-on-surface-variant">
+              <h1 className="text-headline-lg text-on-surface">Dashboard</h1>
+              <p className="text-body-lg text-on-surface-variant">
                 Visão geral das suas despesas.
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-space-sm">
               <select
                 value={month}
                 disabled={state === "loading"}
                 onChange={(event) => handleMonthChange(Number(event.target.value))}
-                className="h-10 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 text-sm text-on-surface outline-none transition-colors focus:border-primary disabled:opacity-50 md:cursor-pointer"
+                className="rounded-lg border-none bg-surface-container px-space-md py-space-sm text-body-lg text-on-surface outline-none transition-colors focus:ring-0 disabled:opacity-50 md:cursor-pointer"
               >
                 {MONTH_NAMES.map((name, index) => (
                   <option key={name} value={index + 1}>
@@ -165,7 +123,7 @@ export function DashboardView() {
                 value={year}
                 disabled={state === "loading"}
                 onChange={(event) => handleYearChange(Number(event.target.value))}
-                className="h-10 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 text-sm text-on-surface outline-none transition-colors focus:border-primary disabled:opacity-50 md:cursor-pointer"
+                className="rounded-lg border-none bg-surface-container px-space-md py-space-sm text-body-lg text-on-surface outline-none transition-colors focus:ring-0 disabled:opacity-50 md:cursor-pointer"
               >
                 {yearOptions(now.getFullYear()).map((y) => (
                   <option key={y} value={y}>
@@ -191,43 +149,53 @@ export function DashboardView() {
 function DashboardContent({ data }: { data: DashboardData }) {
   return (
     <>
-      <div className="relative overflow-hidden rounded-xl bg-surface-container p-6 shadow-sm">
+      <div className="relative overflow-hidden rounded-xl bg-surface-container p-space-md shadow-sm">
         <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-primary/5 blur-xl" />
-        <span className="relative z-10 text-[10.24px] font-medium uppercase tracking-widest text-on-surface-variant">
+        <span className="relative z-10 block text-label-md uppercase tracking-widest text-on-surface-variant">
           Total de Despesas
         </span>
-        <div className="relative z-10 mt-2 text-[31.25px] font-semibold text-on-surface">
+        <div className="relative z-10 mt-space-sm text-headline-lg text-on-surface">
           {currencyFormatter.format(data.total)}
         </div>
       </div>
 
       <div className="overflow-hidden rounded-xl bg-surface-container shadow-sm">
-        <div className="flex items-center justify-between border-b border-surface-container-high p-6">
-          <h2 className="text-xl font-medium text-on-surface">Despesas do Mês</h2>
-          <span className="text-sm text-on-surface-variant">
+        <div className="flex items-center justify-between border-b border-surface-container-high p-space-lg">
+          <h2 className="text-title-lg text-on-surface">Despesas do Mês</h2>
+          <span className="text-body-md text-on-surface-variant">
             {data.expenses.length} {data.expenses.length === 1 ? "despesa" : "despesas"}
           </span>
         </div>
-        <ul className="divide-y divide-surface-container-high">
-          {data.expenses.map((expense) => (
-            <li
-              key={expense.dashboardExpenseId}
-              className="flex items-center justify-between gap-4 p-4 sm:p-6"
-            >
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface text-primary shadow-sm">
-                  <span className="material-symbols-outlined">receipt_long</span>
-                </div>
-                <span className="truncate text-sm text-on-surface">
-                  {expense.dashboardExpenseDescription}
-                </span>
-              </div>
-              <span className="shrink-0 text-sm font-medium text-error">
-                -{currencyFormatter.format(expense.dashboardExpenseCost)}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <table className="w-full border-collapse text-left">
+          <thead>
+            <tr className="bg-surface-container-low">
+              <th className="p-space-md text-label-md font-medium uppercase text-on-surface-variant">
+                Descrição
+              </th>
+              <th className="p-space-md text-right text-label-md font-medium uppercase text-on-surface-variant">
+                Valor
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.expenses.map((expense) => (
+              <tr
+                key={expense.dashboardExpenseId}
+                className="group transition-colors hover:bg-surface-container-high"
+              >
+                <td className="flex items-center gap-3 p-space-md text-body-md text-on-surface">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface text-primary shadow-sm">
+                    <span className="material-symbols-outlined text-[20px]">receipt_long</span>
+                  </div>
+                  <span className="truncate">{expense.dashboardExpenseDescription}</span>
+                </td>
+                <td className="p-space-md text-right text-body-md font-medium text-error">
+                  -{currencyFormatter.format(expense.dashboardExpenseCost)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </>
   );
@@ -235,47 +203,106 @@ function DashboardContent({ data }: { data: DashboardData }) {
 
 function LoadingSkeleton() {
   return (
-    <div className="flex animate-pulse flex-col gap-6">
-      <div className="h-28 rounded-xl bg-surface-container" />
-      <div className="h-64 rounded-xl bg-surface-container" />
+    <div className="flex animate-pulse flex-col gap-space-lg">
+      <div className="rounded-xl bg-surface-container-low p-space-lg shadow-sm">
+        <div className="mb-space-lg h-5 w-32 rounded bg-surface-container" />
+        <div className="h-8 w-40 rounded-md bg-surface-container-high" />
+      </div>
+      <div className="rounded-xl bg-surface-container-low p-space-lg shadow-sm">
+        <div className="mb-space-lg flex items-center justify-between">
+          <div className="h-6 w-40 rounded bg-surface-container" />
+          <div className="h-5 w-16 rounded bg-surface-container" />
+        </div>
+        <div className="flex flex-col gap-space-md">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center justify-between">
+              <div className="flex items-center gap-space-md">
+                <div className="h-10 w-10 rounded-full bg-surface-container" />
+                <div className="h-4 w-32 rounded bg-surface-container-high" />
+              </div>
+              <div className="h-4 w-16 rounded bg-surface-container-high" />
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
 
 function EmptyState({ monthLabel, year }: { monthLabel: string; year: number }) {
   return (
-    <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-xl bg-surface-container-lowest p-10 text-center shadow-sm">
-      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-surface-container-low shadow-md">
-        <span className="material-symbols-outlined text-[40px] text-primary">
-          account_balance_wallet
-        </span>
+    <div className="relative flex min-h-100 flex-col items-center justify-center overflow-hidden rounded-xl bg-surface-container-lowest p-space-xl shadow-sm">
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-40">
+        <svg
+          className="h-105 w-105 text-surface-container"
+          viewBox="0 0 100 100"
+          fill="none"
+          aria-hidden
+        >
+          <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2 4" />
+          <circle cx="50" cy="50" r="30" stroke="currentColor" strokeWidth="0.5" strokeDasharray="1 6" />
+          <circle cx="50" cy="50" r="20" stroke="currentColor" strokeWidth="0.5" />
+        </svg>
       </div>
-      <h2 className="text-xl font-medium text-on-surface">Nenhuma despesa encontrada</h2>
-      <p className="max-w-sm text-sm text-on-surface-variant">
-        Não há despesas registradas para {monthLabel} de {year}.
-      </p>
+      <div className="relative z-10 flex max-w-md flex-col items-center text-center">
+        <div className="relative mb-space-lg flex h-24 w-24 items-center justify-center rounded-full bg-surface-container-low shadow-md">
+          <span
+            className="material-symbols-outlined text-[48px] text-primary"
+            style={{ fontVariationSettings: "'FILL' 1" }}
+          >
+            account_balance_wallet
+          </span>
+          <div className="absolute -bottom-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-lowest shadow-sm">
+            <span className="material-symbols-outlined text-[16px] text-on-surface-variant">
+              search_off
+            </span>
+          </div>
+        </div>
+        <h2 className="mb-space-sm text-title-lg text-on-surface">Nenhuma despesa encontrada</h2>
+        <p className="text-body-md text-on-surface-variant">
+          Não há despesas registradas para {monthLabel} de {year}.
+        </p>
+      </div>
     </div>
   );
 }
 
 function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-xl bg-surface-container/40 p-10 text-center shadow-sm">
-      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-error-container">
-        <span className="material-symbols-outlined text-[40px] text-error">error</span>
+    <div className="relative flex min-h-100 items-center justify-center overflow-hidden rounded-xl p-space-lg">
+      <div className="absolute left-1/4 top-1/4 -z-10 h-80 w-80 rounded-full bg-error-container/30 blur-[100px]" />
+      <div className="absolute bottom-1/4 right-1/4 -z-10 h-56 w-56 rounded-full bg-primary-container/10 blur-[80px]" />
+      <div className="group relative flex w-full max-w-lg flex-col items-center rounded-4xl border border-outline-variant/10 bg-surface-container/30 p-space-xl text-center shadow-xl backdrop-blur-sm">
+        <div className="relative mb-space-lg h-24 w-24">
+          <div
+            className="absolute inset-0 animate-ping rounded-full bg-error-container opacity-20"
+            style={{ animationDuration: "3s" }}
+          />
+          <div className="absolute inset-0 animate-pulse rounded-full bg-error-container opacity-40" />
+          <div className="relative z-10 flex h-full w-full items-center justify-center rounded-full bg-surface shadow-md">
+            <span
+              className="material-symbols-outlined text-[48px] text-error transition-transform duration-500 ease-out group-hover:scale-110"
+              style={{ fontVariationSettings: "'FILL' 1" }}
+            >
+              error
+            </span>
+          </div>
+        </div>
+        <h2 className="mb-space-sm text-headline-lg tracking-tight text-on-surface">
+          Ocorreu um erro ao carregar o dashboard
+        </h2>
+        <p className="mb-space-xl max-w-sm text-body-lg text-on-surface-variant">{message}</p>
+        <button
+          type="button"
+          onClick={onRetry}
+          className="group flex items-center gap-space-sm rounded-xl bg-secondary-container px-space-xl py-space-md text-title-lg font-medium text-on-secondary-container shadow-sm transition-all duration-200 hover:shadow-md active:scale-95 md:cursor-pointer"
+        >
+          <span className="material-symbols-outlined transition-transform duration-500 group-hover:-rotate-180">
+            refresh
+          </span>
+          Tentar Novamente
+        </button>
       </div>
-      <h2 className="text-xl font-medium text-on-surface">
-        Ocorreu um erro ao carregar o dashboard
-      </h2>
-      <p className="max-w-sm text-sm text-on-surface-variant">{message}</p>
-      <button
-        type="button"
-        onClick={onRetry}
-        className="flex items-center gap-2 rounded-lg bg-secondary-container px-6 py-2.5 font-medium text-on-secondary-container transition-colors hover:bg-secondary-container/80 md:cursor-pointer"
-      >
-        <span className="material-symbols-outlined text-[18px]">refresh</span>
-        Tentar novamente
-      </button>
     </div>
   );
 }
