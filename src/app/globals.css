@@ -24,3 +24,57 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Smart Wallet design tokens — mirrors .stitch/DESIGN.md */
+@theme {
+  --color-primary: #2563eb;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #dbeafe;
+  --color-on-primary-container: #1e40af;
+
+  --color-secondary: #475569;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #f1f5f9;
+  --color-on-secondary-container: #334155;
+
+  --color-error: #dc2626;
+  --color-on-error: #ffffff;
+  --color-error-container: #fee2e2;
+  --color-on-error-container: #991b1b;
+
+  --color-success: #16a34a;
+  --color-on-success: #ffffff;
+  --color-success-container: #dcfce7;
+  --color-on-success-container: #166534;
+
+  --color-warning: #ca8a04;
+  --color-on-warning: #ffffff;
+  --color-warning-container: #fef9c3;
+  --color-on-warning-container: #854d0e;
+
+  --color-surface: #ffffff;
+  --color-surface-dim: #d9d9e5;
+  --color-surface-bright: #faf8ff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f3f3fe;
+  --color-surface-container: #eeeeff;
+  --color-surface-container-high: #e7e7f6;
+  --color-surface-container-highest: #e1e1f0;
+  --color-surface-variant: #e1e2ed;
+
+  --color-on-surface: #1a1a24;
+  --color-on-surface-variant: #444453;
+
+  --color-outline: #757585;
+  --color-outline-variant: #c5c5d5;
+
+  --color-inverse-surface: #2e3039;
+  --color-inverse-on-surface: #f0f0fb;
+  --color-inverse-primary: #b4c5ff;
+
+  --radius-sm: 0.25rem;
+  --radius: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+}
