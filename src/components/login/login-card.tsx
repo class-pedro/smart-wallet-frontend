@@ -53,7 +53,7 @@ export function LoginCard() {
 
     try {
       const { profileComplete } = await signInWithGoogle();
-      router.push(profileComplete ? "/" : "/completar-perfil");
+      router.push(profileComplete ? "/dashboard" : "/completar-perfil");
     } catch (error) {
       if (error instanceof GoogleOneTapUnavailableError) {
         setState("fallback");

@@ -48,7 +48,7 @@ export function CompleteProfileCard() {
 
     try {
       await completeProfile({ cpf: cpfDigits, cellphone: cellphoneDigits });
-      router.push("/");
+      router.push("/dashboard");
     } catch (error) {
       setErrorMessage(
         error instanceof Error
