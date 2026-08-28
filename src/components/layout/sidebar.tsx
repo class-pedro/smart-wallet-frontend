@@ -11,7 +11,8 @@ type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
   { key: "dashboard", label: "Dashboard", icon: "dashboard", href: "/dashboard" },
-  { key: "transacoes", label: "Transações", icon: "receipt_long" },
+  { key: "transacoes", label: "Transações", icon: "receipt_long", href: "/transacoes" },
+  { key: "cartoes", label: "Cartões", icon: "credit_card", href: "/cartoes" },
   { key: "contas", label: "Contas", icon: "account_balance" },
   { key: "configuracoes", label: "Configurações", icon: "settings" },
 ];
