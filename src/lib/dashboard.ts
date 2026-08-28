@@ -4,7 +4,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8090";
 const DASHBOARD_ENDPOINT = `${API_URL}/expenses/dash`;
 
 const GENERIC_ERROR_MESSAGE =
-  "Não foi possível carregar o dashboard. Por favor, tente novamente.";
+  "Não foi possível buscar as informações financeiras. Por favor, verifique sua conexão e tente novamente.";
 
 export type DashboardExpense = {
   dashboardExpenseId: string;

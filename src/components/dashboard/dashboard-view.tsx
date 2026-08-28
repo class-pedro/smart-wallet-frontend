@@ -25,7 +25,7 @@ const MONTH_NAMES = [
 ];
 
 const GENERIC_ERROR_MESSAGE =
-  "Não foi possível carregar o dashboard. Por favor, tente novamente.";
+  "Não foi possível buscar as informações financeiras. Por favor, verifique sua conexão e tente novamente.";
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -250,7 +250,7 @@ function EmptyState({ monthLabel, year }: { monthLabel: string; year: number }) 
             className="material-symbols-outlined text-[48px] text-primary"
             style={{ fontVariationSettings: "'FILL' 1" }}
           >
-            account_balance_wallet
+            wallet
           </span>
           <div className="absolute -bottom-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-lowest shadow-sm">
             <span className="material-symbols-outlined text-[16px] text-on-surface-variant">

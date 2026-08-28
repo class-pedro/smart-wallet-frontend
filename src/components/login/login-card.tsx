@@ -72,7 +72,7 @@ export function LoginCard() {
         onReady={() => setScriptReady(true)}
       />
 
-      <div className="relative flex w-full flex-col gap-6 overflow-hidden rounded-md border border-outline-variant bg-surface-container-lowest p-8 text-center shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
+      <div className="relative flex w-full flex-col gap-6 overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest p-8 text-center shadow-[0_4px_12px_rgba(0,0,0,0.04)]">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 via-transparent to-surface-container-lowest"
@@ -81,33 +81,35 @@ export function LoginCard() {
         {state === "error" ? (
           <div
             key="error"
-            className={`flex flex-col items-center gap-2 rounded-md bg-error-container p-6 text-on-error-container shadow-sm shadow-error/10 transition-all duration-300 ease-out ${
+            className={`flex flex-col items-center gap-2 rounded-xl bg-error-container p-6 text-on-error-container shadow-sm shadow-error/10 transition-all duration-300 ease-out ${
               errorVisible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
             }`}
           >
             <div className="mb-1 flex h-12 w-12 items-center justify-center rounded-full bg-error/10 text-error">
               <ShieldAlertIcon className="h-7 w-7" />
             </div>
-            <h2 className="text-xl font-medium tracking-tight">
-              Falha na Autenticação
-            </h2>
-            <p className="mx-auto max-w-70 text-sm opacity-90">
-              {errorMessage}
-            </p>
+            <h2 className="text-title-lg tracking-tight">Falha na Autenticação</h2>
+            <p className="mx-auto max-w-70 text-body-md opacity-90">{errorMessage}</p>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2">
             <div className="mb-2 flex h-16 w-16 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20">
-              <WalletIcon className="h-9 w-9 text-on-primary" />
+              <WalletIcon className="h-7 w-7 text-on-primary" />
             </div>
-            <h2 className="text-2xl font-semibold tracking-tight text-on-surface">
+            <h2
+              className={
+                state === "idle"
+                  ? "text-headline-md tracking-tight text-on-surface"
+                  : "text-title-lg tracking-tight text-on-surface"
+              }
+            >
               {state === "loading"
                 ? "Autenticando..."
                 : state === "fallback"
                   ? "Confirme com o Google"
                   : "Bem-vindo ao Smart Wallet"}
             </h2>
-            <p className="mx-auto max-w-70 text-sm leading-relaxed text-on-surface-variant">
+            <p className="mx-auto max-w-70 text-body-md leading-relaxed text-on-surface-variant">
               {state === "loading"
                 ? "Aguarde enquanto conectamos com segurança à sua conta."
                 : state === "fallback"
@@ -152,7 +154,7 @@ export function LoginCard() {
                 fallbackRendered.current = false;
                 setState("idle");
               }}
-              className="text-xs text-primary underline-offset-2 hover:underline md:cursor-pointer"
+              className="text-label-md text-primary underline-offset-2 hover:underline md:cursor-pointer"
             >
               Voltar
             </button>
@@ -162,21 +164,21 @@ export function LoginCard() {
             type="button"
             onClick={handleGoogleSignIn}
             disabled={state === "loading"}
-            className="group relative flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded border border-outline-variant bg-surface-container-lowest transition-colors duration-200 hover:enabled:bg-surface-container disabled:cursor-not-allowed disabled:opacity-50 md:cursor-pointer"
+            className="group relative flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-lg border border-outline-variant bg-surface-container-lowest transition-colors duration-200 hover:enabled:bg-surface-container disabled:cursor-not-allowed disabled:opacity-50 md:cursor-pointer"
           >
             <span
               aria-hidden
               className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-primary/5 to-transparent transition-transform duration-700 ease-in-out group-hover:translate-x-full"
             />
             <GoogleIcon className="relative z-10 h-5 w-5" />
-            <span className="relative z-10 text-base font-medium text-on-surface">
+            <span className="relative z-10 text-body-md font-medium text-on-surface">
               Continuar com Google
             </span>
           </button>
         )}
 
         {state === "idle" && (
-          <p className="mx-auto mt-2 max-w-[240px] text-xs text-on-surface-variant opacity-80">
+          <p className="mx-auto mt-2 max-w-[240px] text-label-md text-on-surface-variant opacity-80">
             Ao continuar, você concorda com nossos{" "}
             <a className="text-primary underline-offset-2 hover:underline" href="#">
               Termos de Serviço
