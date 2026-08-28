@@ -13,12 +13,14 @@ export default function LoginPage() {
       <div className="flex w-full max-w-md flex-col items-center gap-8">
         <div className="flex flex-col items-center gap-2">
           <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20">
-            <WalletIcon className="h-8 w-8 text-on-primary" />
+            <WalletIcon className="h-6 w-6 text-on-primary" />
           </div>
-          <h1 className="mt-2 text-[31.25px] font-semibold tracking-tight text-on-surface">
-            Smart Wallet
-          </h1>
-          <p className="text-sm text-on-surface-variant">
+          <div className="pt-4">
+            <h1 className="text-headline-lg tracking-tight text-on-surface">
+              Smart Wallet
+            </h1>
+          </div>
+          <p className="text-body-md text-on-surface-variant">
             Acesso seguro à sua gestão financeira
           </p>
         </div>
@@ -26,7 +28,7 @@ export default function LoginPage() {
         <LoginCard />
       </div>
 
-      <div className="flex items-center gap-4 text-[10.24px] font-medium text-on-surface-variant">
+      <div className="flex items-center gap-4 text-label-md text-on-surface-variant">
         <a className="transition-colors hover:text-primary" href="#">
           Política de Segurança
         </a>
