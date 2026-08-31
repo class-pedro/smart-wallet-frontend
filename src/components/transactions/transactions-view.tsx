@@ -9,8 +9,7 @@ import {
   type TransactionsSummary,
   type TransactionStatus,
 } from "@/lib/transactions";
-import { Sidebar } from "@/components/layout/sidebar";
-import { Topbar } from "@/components/layout/topbar";
+import { AppShell } from "@/components/layout/app-shell";
 import { NewExpenseModal } from "@/components/transactions/new-expense-modal";
 
 type ViewState = "loading" | "success" | "error";
@@ -92,36 +91,31 @@ export function TransactionsView() {
   }
 
   return (
-    <div className="min-h-screen bg-surface">
-      <Sidebar activePath="transacoes" onLogout={handleLogout} />
-      <Topbar onLogout={handleLogout} />
-
-      <div className="pt-14 md:pl-sidebar-width md:pt-16">
-        <main className="flex w-full flex-col gap-space-lg px-space-md py-space-lg md:px-space-lg">
-          <div className="flex flex-col gap-space-md sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h1 className="text-headline-lg text-on-surface">Transações</h1>
-              <p className="text-body-lg text-on-surface-variant">
-                Gerencie suas receitas e despesas.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setModalOpen(true)}
-              className="flex items-center gap-space-sm self-start rounded-lg bg-primary px-space-lg py-space-sm text-body-lg font-medium text-on-primary shadow-sm transition-colors hover:bg-primary/90 md:cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[18px]">add</span>
-              Nova Despesa
-            </button>
+    <AppShell activePath="transacoes" onLogout={handleLogout}>
+      <main className="flex w-full flex-col gap-space-lg px-space-md py-space-lg md:px-space-lg">
+        <div className="flex flex-col gap-space-md sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-headline-lg text-on-surface">Transações</h1>
+            <p className="text-body-lg text-on-surface-variant">
+              Gerencie suas receitas e despesas.
+            </p>
           </div>
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            className="flex items-center gap-space-sm self-start rounded-lg bg-primary px-space-lg py-space-sm text-body-lg font-medium text-on-primary shadow-sm transition-colors hover:bg-primary/90 md:cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[18px]">add</span>
+            Nova Despesa
+          </button>
+        </div>
 
-          {state === "loading" && <LoadingSkeleton />}
-          {state === "error" && <ErrorState message={errorMessage} onRetry={handleRetry} />}
-          {state === "success" && summary && (
-            <TransactionsContent summary={summary} transactions={transactions} />
-          )}
-        </main>
-      </div>
+        {state === "loading" && <LoadingSkeleton />}
+        {state === "error" && <ErrorState message={errorMessage} onRetry={handleRetry} />}
+        {state === "success" && summary && (
+          <TransactionsContent summary={summary} transactions={transactions} />
+        )}
+      </main>
 
       <NewExpenseModal
         open={modalOpen}
@@ -129,7 +123,7 @@ export function TransactionsView() {
         onClose={() => setModalOpen(false)}
         onCreate={handleCreateExpense}
       />
-    </div>
+    </AppShell>
   );
 }
 

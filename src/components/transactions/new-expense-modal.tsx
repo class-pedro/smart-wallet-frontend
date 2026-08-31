@@ -1,12 +1,35 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { fetchCardsToInput, type CardOption } from "@/lib/cards";
-import type { Transaction } from "@/lib/transactions";
+import { centsFromDigits, formatBRL } from "@/lib/currency";
+import {
+  createExpense,
+  type ExpensePaymentMethod,
+  type ExpensePaymentType,
+  type Transaction,
+} from "@/lib/transactions";
 
 const PAYMENT_METHODS = ["Cartão de Crédito", "Débito", "Dinheiro", "Pix"] as const;
 const INSTALLMENT_OPTIONS = ["À vista", "Parcelado", "Recorrente"] as const;
 type InstallmentOption = (typeof INSTALLMENT_OPTIONS)[number];
+
+/** The backend has no dedicated Pix payment type — it's treated as money, same as Dinheiro. */
+const PAYMENT_TYPE_MAP: Record<(typeof PAYMENT_METHODS)[number], ExpensePaymentType> = {
+  "Cartão de Crédito": "credit",
+  "Débito": "debit",
+  Dinheiro: "money",
+  Pix: "money",
+};
+
+const INSTALLMENT_METHOD_MAP: Record<InstallmentOption, ExpensePaymentMethod> = {
+  "À vista": "payInFull",
+  Parcelado: "installment",
+  Recorrente: "recurrent",
+};
+
+const GENERIC_ERROR_MESSAGE =
+  "Não foi possível salvar a despesa. Por favor, verifique os dados e tente novamente.";
 
 function formatDateLabel(isoDate: string): string {
   const [year, month, day] = isoDate.split("-");
@@ -15,6 +38,13 @@ function formatDateLabel(isoDate: string): string {
     "Jul", "Ago", "Set", "Out", "Nov", "Dez",
   ];
   return `${day} ${MONTH_ABBR[Number(month) - 1]} ${year}`;
+}
+
+function todayISODate(): string {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${now.getFullYear()}-${month}-${day}`;
 }
 
 type NewExpenseModalProps = {
@@ -26,7 +56,7 @@ type NewExpenseModalProps = {
 
 export function NewExpenseModal({ open, walletId, onClose, onCreate }: NewExpenseModalProps) {
   const [description, setDescription] = useState("");
-  const [amount, setAmount] = useState("");
+  const [amountCents, setAmountCents] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState<(typeof PAYMENT_METHODS)[number]>(
     PAYMENT_METHODS[0]
   );
@@ -35,6 +65,8 @@ export function NewExpenseModal({ open, walletId, onClose, onCreate }: NewExpens
   const [installments, setInstallments] = useState("");
   const [purchaseDate, setPurchaseDate] = useState("");
   const [cards, setCards] = useState<CardOption[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open || !walletId) return;
@@ -45,14 +77,17 @@ export function NewExpenseModal({ open, walletId, onClose, onCreate }: NewExpens
 
   if (!open) return null;
 
+  const requiresCard = PAYMENT_TYPE_MAP[paymentMethod] !== "money";
+
   function resetForm() {
     setDescription("");
-    setAmount("");
+    setAmountCents(0);
     setPaymentMethod(PAYMENT_METHODS[0]);
     setCardId("");
     setInstallmentOption("À vista");
     setInstallments("");
     setPurchaseDate("");
+    setErrorMessage(null);
   }
 
   function handleClose() {
@@ -60,28 +95,59 @@ export function NewExpenseModal({ open, walletId, onClose, onCreate }: NewExpens
     onClose();
   }
 
-  function handleSubmit(event: FormEvent) {
+  function handleAmountChange(event: ChangeEvent<HTMLInputElement>) {
+    setAmountCents(centsFromDigits(event.target.value));
+  }
+
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!description || !amount || !purchaseDate) return;
+    if (!description || amountCents === 0 || !walletId) return;
+    if (requiresCard && !cardId) {
+      setErrorMessage("Selecione um cartão para continuar.");
+      return;
+    }
 
-    const paymentDetail =
-      installmentOption === "Parcelado" && installments
-        ? `Parcelado 1/${installments}`
-        : installmentOption === "Recorrente"
-          ? "Recorrente"
-          : undefined;
+    const effectivePurchaseDate = purchaseDate || todayISODate();
+    const installmentsCount =
+      installmentOption === "Parcelado" && installments ? Number(installments) : undefined;
 
-    onCreate({
-      id: crypto.randomUUID(),
-      dateLabel: formatDateLabel(purchaseDate),
-      description,
-      paymentLabel: paymentMethod,
-      paymentDetail,
-      amount: Number(amount),
-      kind: "despesa",
-      status: "pago",
-    });
-    resetForm();
+    setSubmitting(true);
+    setErrorMessage(null);
+    try {
+      await createExpense({
+        description,
+        costCents: amountCents,
+        paymentType: PAYMENT_TYPE_MAP[paymentMethod],
+        paymentMethod: INSTALLMENT_METHOD_MAP[installmentOption],
+        purchaseDate: effectivePurchaseDate,
+        installments: installmentsCount,
+        walletId: requiresCard ? undefined : walletId,
+        cardId: requiresCard ? cardId : undefined,
+      });
+
+      const paymentDetail =
+        installmentOption === "Parcelado" && installments
+          ? `Parcelado 1/${installments}`
+          : installmentOption === "Recorrente"
+            ? "Recorrente"
+            : undefined;
+
+      onCreate({
+        id: crypto.randomUUID(),
+        dateLabel: formatDateLabel(effectivePurchaseDate),
+        description,
+        paymentLabel: paymentMethod,
+        paymentDetail,
+        amount: amountCents / 100,
+        kind: "despesa",
+        status: "pago",
+      });
+      resetForm();
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : GENERIC_ERROR_MESSAGE);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -117,26 +183,24 @@ export function NewExpenseModal({ open, walletId, onClose, onCreate }: NewExpens
             />
           </Field>
 
-          <Field label="Valor (R$)">
+          <Field label="Valor">
             <input
-              required
-              type="number"
-              min="0"
-              step="0.01"
-              value={amount}
-              onChange={(event) => setAmount(event.target.value)}
-              placeholder="0,00"
+              type="text"
+              inputMode="numeric"
+              value={formatBRL(amountCents / 100)}
+              onChange={handleAmountChange}
               className="w-full rounded-lg border border-outline-variant/30 bg-surface-container px-space-md py-space-sm text-body-lg text-on-surface outline-none focus:ring-0"
             />
           </Field>
 
-          <div className="grid grid-cols-2 gap-space-md">
+          <div className={requiresCard ? "grid grid-cols-2 gap-space-md" : "grid grid-cols-1"}>
             <Field label="Forma de Pagamento">
               <select
                 value={paymentMethod}
-                onChange={(event) =>
-                  setPaymentMethod(event.target.value as (typeof PAYMENT_METHODS)[number])
-                }
+                onChange={(event) => {
+                  setPaymentMethod(event.target.value as (typeof PAYMENT_METHODS)[number]);
+                  setCardId("");
+                }}
                 className="w-full rounded-lg border border-outline-variant/30 bg-surface px-space-md py-space-sm text-body-lg text-on-surface outline-none focus:ring-0 md:cursor-pointer"
               >
                 {PAYMENT_METHODS.map((method) => (
@@ -146,20 +210,23 @@ export function NewExpenseModal({ open, walletId, onClose, onCreate }: NewExpens
                 ))}
               </select>
             </Field>
-            <Field label="Carteira / Cartão">
-              <select
-                value={cardId}
-                onChange={(event) => setCardId(event.target.value)}
-                className="w-full rounded-lg border border-outline-variant/30 bg-surface px-space-md py-space-sm text-body-lg text-on-surface outline-none focus:ring-0 md:cursor-pointer"
-              >
-                <option value="">Selecione</option>
-                {cards.map((card) => (
-                  <option key={card.id} value={card.id}>
-                    {card.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
+            {requiresCard && (
+              <Field label="Cartão">
+                <select
+                  required
+                  value={cardId}
+                  onChange={(event) => setCardId(event.target.value)}
+                  className="w-full rounded-lg border border-outline-variant/30 bg-surface px-space-md py-space-sm text-body-lg text-on-surface outline-none focus:ring-0 md:cursor-pointer"
+                >
+                  <option value="">Selecione</option>
+                  {cards.map((card) => (
+                    <option key={card.id} value={card.id}>
+                      {card.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-space-md">
@@ -194,15 +261,23 @@ export function NewExpenseModal({ open, walletId, onClose, onCreate }: NewExpens
             </Field>
           </div>
 
-          <Field label="Data da Compra">
+          <Field
+            label="Data da Compra"
+            hint="Se não for preenchida, é usada a data de hoje."
+          >
             <input
-              required
               type="date"
               value={purchaseDate}
               onChange={(event) => setPurchaseDate(event.target.value)}
               className="w-full rounded-lg border border-outline-variant/30 bg-surface px-space-md py-space-sm text-body-lg text-on-surface outline-none focus:ring-0"
             />
           </Field>
+
+          {errorMessage && (
+            <p className="rounded-lg bg-error/10 px-space-md py-space-sm text-body-md text-error">
+              {errorMessage}
+            </p>
+          )}
 
           <div className="flex justify-end gap-space-sm border-t border-outline-variant/30 pt-space-md">
             <button
@@ -214,10 +289,11 @@ export function NewExpenseModal({ open, walletId, onClose, onCreate }: NewExpens
             </button>
             <button
               type="submit"
-              className="flex items-center gap-space-xs rounded-lg bg-primary px-space-lg py-space-sm text-body-lg font-medium text-on-primary shadow-sm transition-colors hover:bg-primary/90 md:cursor-pointer"
+              disabled={submitting}
+              className="flex items-center gap-space-xs rounded-lg bg-primary px-space-lg py-space-sm text-body-lg font-medium text-on-primary shadow-sm transition-colors hover:bg-primary/90 disabled:opacity-60 md:cursor-pointer"
             >
               <span className="material-symbols-outlined text-[18px]">save</span>
-              Salvar Despesa
+              {submitting ? "Salvando..." : "Salvar Despesa"}
             </button>
           </div>
         </form>
@@ -226,10 +302,30 @@ export function NewExpenseModal({ open, walletId, onClose, onCreate }: NewExpens
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  hint,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
   return (
     <label className="flex flex-col gap-space-xs">
-      <span className="text-body-md text-on-surface-variant">{label}</span>
+      <span className="flex items-center gap-space-xs text-body-md text-on-surface-variant">
+        {label}
+        {hint && (
+          <span
+            title={hint}
+            aria-label={hint}
+            tabIndex={0}
+            className="material-symbols-outlined cursor-help text-[16px] text-on-surface-variant/60"
+          >
+            info
+          </span>
+        )}
+      </span>
       {children}
     </label>
   );

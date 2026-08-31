@@ -6,6 +6,9 @@ import type {
 
 export class AuthError extends Error {}
 
+/** Thrown when a request is rejected because the session's token is missing or expired. */
+export class SessionExpiredError extends AuthError {}
+
 /**
  * Thrown when Google's One Tap prompt could not be shown (e.g. the browser
  * blocked it, the user dismissed it too recently, or FedCM is unavailable).

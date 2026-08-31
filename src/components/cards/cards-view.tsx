@@ -2,15 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getWalletId, signOut } from "@/lib/auth";
+import { getWalletId, signOut, SessionExpiredError } from "@/lib/auth";
 import {
   fetchCardsToInput,
   withMockFinancials,
   type CardStatus,
   type CreditCard,
 } from "@/lib/cards";
-import { Sidebar } from "@/components/layout/sidebar";
-import { Topbar } from "@/components/layout/topbar";
+import { AppShell } from "@/components/layout/app-shell";
 import { NewCardModal } from "@/components/cards/new-card-modal";
 
 type ViewState = "loading" | "success" | "empty" | "error";
@@ -47,6 +46,7 @@ export function CardsView() {
   const [cards, setCards] = useState<CreditCard[]>([]);
   const [errorMessage, setErrorMessage] = useState(GENERIC_ERROR_MESSAGE);
   const [modalOpen, setModalOpen] = useState(false);
+  const walletId = getWalletId();
 
   const load = useCallback(() => {
     const walletId = getWalletId();
@@ -63,6 +63,11 @@ export function CardsView() {
         setState(withFinancials.length === 0 ? "empty" : "success");
       })
       .catch((error) => {
+        if (error instanceof SessionExpiredError) {
+          signOut();
+          router.replace("/login");
+          return;
+        }
         setErrorMessage(error instanceof Error ? error.message : GENERIC_ERROR_MESSAGE);
         setState("error");
       });
@@ -82,51 +87,46 @@ export function CardsView() {
     router.replace("/login");
   }
 
-  function handleCreateCard(card: CreditCard) {
-    setCards((prev) => [...prev, card]);
-    setState("success");
+  function handleCreateCard() {
     setModalOpen(false);
+    load();
   }
 
   return (
-    <div className="min-h-screen bg-surface">
-      <Sidebar activePath="cartoes" onLogout={handleLogout} />
-      <Topbar onLogout={handleLogout} />
-
-      <div className="pt-14 md:pl-sidebar-width md:pt-16">
-        <main className="flex w-full flex-col gap-space-lg px-space-md py-space-lg md:px-space-lg">
-          <div className="flex flex-col gap-space-md sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h1 className="text-headline-lg text-on-surface">Meus Cartões</h1>
-              <p className="text-body-lg text-on-surface-variant">
-                Gerencie seus limites e faturas.
-              </p>
-            </div>
-            {state !== "empty" && (
-              <button
-                type="button"
-                onClick={() => setModalOpen(true)}
-                className="flex items-center gap-space-sm self-start rounded-lg bg-primary px-space-lg py-space-sm text-body-lg font-medium text-on-primary shadow-sm transition-colors hover:bg-primary/90 md:cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[18px]">add</span>
-                Adicionar Cartão
-              </button>
-            )}
+    <AppShell activePath="cartoes" onLogout={handleLogout}>
+      <main className="flex w-full flex-col gap-space-lg px-space-md py-space-lg md:px-space-lg">
+        <div className="flex flex-col gap-space-md sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-headline-lg text-on-surface">Meus Cartões</h1>
+            <p className="text-body-lg text-on-surface-variant">
+              Gerencie seus limites e faturas.
+            </p>
           </div>
+          {state !== "empty" && (
+            <button
+              type="button"
+              onClick={() => setModalOpen(true)}
+              className="flex items-center gap-space-sm self-start rounded-lg bg-primary px-space-lg py-space-sm text-body-lg font-medium text-on-primary shadow-sm transition-colors hover:bg-primary/90 md:cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[18px]">add</span>
+              Adicionar Cartão
+            </button>
+          )}
+        </div>
 
-          {state === "loading" && <LoadingSkeleton />}
-          {state === "error" && <ErrorState message={errorMessage} onRetry={handleRetry} />}
-          {state === "empty" && <EmptyState onAddCard={() => setModalOpen(true)} />}
-          {state === "success" && <CardsContent cards={cards} onAddCard={() => setModalOpen(true)} />}
-        </main>
-      </div>
+        {state === "loading" && <LoadingSkeleton />}
+        {state === "error" && <ErrorState message={errorMessage} onRetry={handleRetry} />}
+        {state === "empty" && <EmptyState onAddCard={() => setModalOpen(true)} />}
+        {state === "success" && <CardsContent cards={cards} onAddCard={() => setModalOpen(true)} />}
+      </main>
 
       <NewCardModal
         open={modalOpen}
+        walletId={walletId}
         onClose={() => setModalOpen(false)}
         onCreate={handleCreateCard}
       />
-    </div>
+    </AppShell>
   );
 }
 

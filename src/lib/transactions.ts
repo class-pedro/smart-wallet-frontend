@@ -1,8 +1,17 @@
+import { AuthError, SessionExpiredError, getStoredToken } from "./auth";
+
 /**
- * No backend endpoint exists yet for transactions — this module returns
+ * Listing transactions has no backend endpoint yet — this module returns
  * mocked data shaped like the eventual API response so the screen can be
- * built ahead of the integration.
+ * built ahead of the integration. Creating an expense, however, does hit
+ * the real `/expenses` endpoint (see `createExpense` below).
  */
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8090";
+const EXPENSES_ENDPOINT = `${API_URL}/expenses`;
+
+const CREATE_EXPENSE_ERROR_MESSAGE =
+  "Não foi possível salvar a despesa. Por favor, verifique os dados e tente novamente.";
 
 export type TransactionStatus = "pago" | "pendente" | "recebido";
 export type TransactionKind = "despesa" | "receita";
@@ -82,4 +91,71 @@ export function fetchTransactions(): Promise<TransactionsData> {
       resolve({ summary: MOCK_SUMMARY, transactions: MOCK_TRANSACTIONS });
     }, 400);
   });
+}
+
+/** Mirrors the backend's PaymentTypeEnum (credit|debit|money). */
+export type ExpensePaymentType = "credit" | "debit" | "money";
+/** Mirrors the backend's PaymentMethodEnum (payInFull|installment|recurrent). */
+export type ExpensePaymentMethod = "payInFull" | "installment" | "recurrent";
+
+export type NewExpensePayload = {
+  description: string;
+  /** The `cost` field the backend expects — despite the name, it's an integer amount of cents. */
+  costCents: number;
+  paymentType: ExpensePaymentType;
+  paymentMethod: ExpensePaymentMethod;
+  /** ISO date (YYYY-MM-DD) — sent to the backend as a start-of-day LocalDateTime. */
+  purchaseDate: string;
+  installments?: number;
+  /** Exactly one of walletId/cardId must be set, matching the paymentType. */
+  walletId?: string;
+  cardId?: string;
+};
+
+async function extractErrorMessage(response: Response): Promise<string> {
+  try {
+    const data = await response.json();
+    if (typeof data?.message === "string") return data.message;
+  } catch {
+    // response had no JSON body — fall through to the fallback message
+  }
+  return CREATE_EXPENSE_ERROR_MESSAGE;
+}
+
+export async function createExpense(payload: NewExpensePayload): Promise<void> {
+  const token = getStoredToken();
+  if (!token) {
+    throw new SessionExpiredError(CREATE_EXPENSE_ERROR_MESSAGE);
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(EXPENSES_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        description: payload.description,
+        cost: payload.costCents,
+        paymentType: payload.paymentType,
+        paymentMethod: payload.paymentMethod,
+        purchaseDate: `${payload.purchaseDate}T00:00:00`,
+        installments: payload.installments,
+        walletId: payload.walletId,
+        cardId: payload.cardId,
+      }),
+    });
+  } catch {
+    throw new AuthError(CREATE_EXPENSE_ERROR_MESSAGE);
+  }
+
+  if (response.status === 401) {
+    throw new SessionExpiredError(CREATE_EXPENSE_ERROR_MESSAGE);
+  }
+
+  if (!response.ok) {
+    throw new AuthError(await extractErrorMessage(response));
+  }
 }
