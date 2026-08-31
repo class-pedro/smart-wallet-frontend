@@ -1,34 +1,61 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import type { CreditCard } from "@/lib/cards";
-
-const MONTH_ABBR = [
-  "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
-  "Jul", "Ago", "Set", "Out", "Nov", "Dez",
-];
+import { useEffect, useState, type FormEvent } from "react";
+import { createCard, fetchCardTypes, type CardType } from "@/lib/cards";
 
 const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
 
-type NewCardModalProps = {
-  open: boolean;
-  onClose: () => void;
-  onCreate: (card: CreditCard) => void;
+const CARD_TYPE_LABEL: Record<string, string> = {
+  credit: "Crédito",
+  debit: "Débito",
+  multiple: "Múltiplo",
 };
 
-export function NewCardModal({ open, onClose, onCreate }: NewCardModalProps) {
+const GENERIC_ERROR_MESSAGE =
+  "Não foi possível criar o cartão. Por favor, verifique os dados e tente novamente.";
+
+function toCents(value: string): number {
+  return Math.round(Number(value) * 100);
+}
+
+type NewCardModalProps = {
+  open: boolean;
+  walletId: string | null;
+  onClose: () => void;
+  onCreate: () => void;
+};
+
+export function NewCardModal({ open, walletId, onClose, onCreate }: NewCardModalProps) {
   const [name, setName] = useState("");
   const [creditLimit, setCreditLimit] = useState("");
-  const [currentInvoice, setCurrentInvoice] = useState("");
+  const [balance, setBalance] = useState("");
+  const [closingDay, setClosingDay] = useState("");
   const [dueDay, setDueDay] = useState("");
+  const [cardTypeId, setCardTypeId] = useState("");
+  const [cardTypes, setCardTypes] = useState<CardType[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    fetchCardTypes()
+      .then(setCardTypes)
+      .catch(() => setCardTypes([]));
+  }, [open]);
 
   if (!open) return null;
+
+  const selectedCardType = cardTypes.find((type) => type.id === cardTypeId);
+  const isCredit = selectedCardType?.title === "credit";
 
   function resetForm() {
     setName("");
     setCreditLimit("");
-    setCurrentInvoice("");
+    setBalance("");
+    setClosingDay("");
     setDueDay("");
+    setCardTypeId("");
+    setErrorMessage(null);
   }
 
   function handleClose() {
@@ -36,20 +63,29 @@ export function NewCardModal({ open, onClose, onCreate }: NewCardModalProps) {
     onClose();
   }
 
-  function handleSubmit(event: FormEvent) {
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!name || !creditLimit || !dueDay) return;
+    if (!name || !creditLimit || !dueDay || !closingDay || !cardTypeId || !walletId) return;
 
-    const now = new Date();
-    onCreate({
-      id: crypto.randomUUID(),
-      name,
-      creditLimit: Number(creditLimit),
-      currentInvoice: Number(currentInvoice) || 0,
-      dueDateLabel: `${dueDay.padStart(2, "0")} ${MONTH_ABBR[now.getMonth()]}`,
-      status: "aberta",
-    });
-    resetForm();
+    setSubmitting(true);
+    setErrorMessage(null);
+    try {
+      await createCard({
+        name,
+        balance: isCredit ? null : balance ? toCents(balance) : 0,
+        dueDateDay: Number(dueDay),
+        closingDateDay: Number(closingDay),
+        creditLimit: toCents(creditLimit),
+        cardTypeId,
+        walletId,
+      });
+      resetForm();
+      onCreate();
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : GENERIC_ERROR_MESSAGE);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -83,7 +119,25 @@ export function NewCardModal({ open, onClose, onCreate }: NewCardModalProps) {
             />
           </Field>
 
-          <div className="grid grid-cols-2 gap-space-md">
+          <Field label="Tipo de Cartão">
+            <select
+              required
+              value={cardTypeId}
+              onChange={(event) => setCardTypeId(event.target.value)}
+              className="w-full rounded-lg border border-outline-variant/30 bg-surface px-space-md py-space-sm text-body-md text-on-surface outline-none focus:ring-0 md:cursor-pointer"
+            >
+              <option value="" disabled>
+                Selecione
+              </option>
+              {cardTypes.map((type) => (
+                <option key={type.id} value={type.id}>
+                  {CARD_TYPE_LABEL[type.title] ?? type.title}
+                </option>
+              ))}
+            </select>
+          </Field>
+
+          <div className={isCredit ? "grid grid-cols-1" : "grid grid-cols-2 gap-space-md"}>
             <Field label="Limite de Crédito">
               <input
                 required
@@ -96,24 +150,28 @@ export function NewCardModal({ open, onClose, onCreate }: NewCardModalProps) {
                 className="w-full rounded-lg border border-outline-variant/30 bg-surface px-space-md py-space-sm text-body-md text-on-surface outline-none focus:ring-0"
               />
             </Field>
-            <Field label="Saldo Atual (Fatura)">
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={currentInvoice}
-                onChange={(event) => setCurrentInvoice(event.target.value)}
-                placeholder="0,00"
-                className="w-full rounded-lg border border-outline-variant/30 bg-surface px-space-md py-space-sm text-body-md text-on-surface outline-none focus:ring-0"
-              />
-            </Field>
+            {!isCredit && (
+              <Field label="Saldo Atual (Fatura)">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={balance}
+                  onChange={(event) => setBalance(event.target.value)}
+                  placeholder="0,00"
+                  className="w-full rounded-lg border border-outline-variant/30 bg-surface px-space-md py-space-sm text-body-md text-on-surface outline-none focus:ring-0"
+                />
+              </Field>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-space-md">
             <Field label="Dia de Fechamento">
               <select
+                required
+                value={closingDay}
+                onChange={(event) => setClosingDay(event.target.value)}
                 className="w-full rounded-lg border border-outline-variant/30 bg-surface px-space-md py-space-sm text-body-md text-on-surface outline-none focus:ring-0 md:cursor-pointer"
-                defaultValue=""
               >
                 <option value="" disabled>
                   Selecione
@@ -153,6 +211,12 @@ export function NewCardModal({ open, onClose, onCreate }: NewCardModalProps) {
             </p>
           </div>
 
+          {errorMessage && (
+            <p className="rounded-lg bg-error/10 px-space-md py-space-sm text-body-md text-error">
+              {errorMessage}
+            </p>
+          )}
+
           <div className="flex justify-end gap-space-sm border-t border-outline-variant/30 pt-space-md">
             <button
               type="button"
@@ -163,10 +227,11 @@ export function NewCardModal({ open, onClose, onCreate }: NewCardModalProps) {
             </button>
             <button
               type="submit"
-              className="flex items-center gap-space-xs rounded-lg bg-primary px-space-md py-space-sm text-body-lg font-medium text-on-primary shadow-sm transition-colors hover:bg-primary/90 md:cursor-pointer"
+              disabled={submitting}
+              className="flex items-center gap-space-xs rounded-lg bg-primary px-space-md py-space-sm text-body-lg font-medium text-on-primary shadow-sm transition-colors hover:bg-primary/90 disabled:opacity-60 md:cursor-pointer"
             >
               <span className="material-symbols-outlined text-[18px]">save</span>
-              Salvar Cartão
+              {submitting ? "Salvando..." : "Salvar Cartão"}
             </button>
           </div>
         </form>

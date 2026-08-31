@@ -1,4 +1,4 @@
-import { AuthError, getStoredToken } from "./auth";
+import { AuthError, SessionExpiredError, getStoredToken } from "./auth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8090";
 const DASHBOARD_ENDPOINT = `${API_URL}/expenses/dash`;
@@ -24,7 +24,7 @@ export async function fetchDashboard(params: {
 }): Promise<DashboardData> {
   const token = getStoredToken();
   if (!token) {
-    throw new AuthError(GENERIC_ERROR_MESSAGE);
+    throw new SessionExpiredError(GENERIC_ERROR_MESSAGE);
   }
 
   const url = new URL(DASHBOARD_ENDPOINT);
@@ -39,6 +39,10 @@ export async function fetchDashboard(params: {
     });
   } catch {
     throw new AuthError(GENERIC_ERROR_MESSAGE);
+  }
+
+  if (response.status === 401) {
+    throw new SessionExpiredError(GENERIC_ERROR_MESSAGE);
   }
 
   if (!response.ok) {

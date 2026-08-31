@@ -112,6 +112,7 @@ body {
   --spacing-space-xl: 32px;
   --spacing-unit: 4px;
   --spacing-sidebar-width: 260px;
+  --spacing-sidebar-collapsed-width: 76px;
 
   /* Type scale */
   --text-headline-lg: 31.25px;
