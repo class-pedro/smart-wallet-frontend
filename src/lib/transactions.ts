@@ -1,15 +1,10 @@
 import { AuthError, SessionExpiredError, getStoredToken } from "./auth";
 
-/**
- * Listing transactions has no backend endpoint yet — this module returns
- * mocked data shaped like the eventual API response so the screen can be
- * built ahead of the integration. Creating an expense, however, does hit
- * the real `/expenses` endpoint (see `createExpense` below).
- */
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8090";
 const EXPENSES_ENDPOINT = `${API_URL}/expenses`;
 
+const GENERIC_ERROR_MESSAGE =
+  "Não foi possível buscar suas transações. Por favor, verifique sua conexão e tente novamente.";
 const CREATE_EXPENSE_ERROR_MESSAGE =
   "Não foi possível salvar a despesa. Por favor, verifique os dados e tente novamente.";
 
@@ -38,59 +33,99 @@ export type TransactionsData = {
   transactions: Transaction[];
 };
 
-const MOCK_TRANSACTIONS: Transaction[] = [
-  {
-    id: "1",
-    dateLabel: "12 Nov 2023",
-    description: "Compra no Supermercado",
-    paymentLabel: "Crédito",
-    paymentDetail: "Parcelado 1/3",
-    amount: 150,
-    kind: "despesa",
-    status: "pago",
-  },
-  {
-    id: "2",
-    dateLabel: "10 Nov 2023",
-    description: "Assinatura Streaming",
-    paymentLabel: "Crédito",
-    paymentDetail: "Recorrente",
-    amount: 34.9,
-    kind: "despesa",
-    status: "pago",
-  },
-  {
-    id: "3",
-    dateLabel: "05 Nov 2023",
-    description: "Aluguel Mensal",
-    paymentLabel: "Débito",
-    amount: 2500,
-    kind: "despesa",
-    status: "pendente",
-  },
-  {
-    id: "4",
-    dateLabel: "02 Nov 2023",
-    description: "Jantar Restaurante",
-    paymentLabel: "Dinheiro",
-    amount: 120,
-    kind: "despesa",
-    status: "pago",
-  },
-];
-
-const MOCK_SUMMARY: TransactionsSummary = {
-  currentBalance: 12450,
-  monthExpenses: 3840.9,
-  monthIncome: 8500,
+type TransactionListItemResponse = {
+  id: string;
+  purchaseDate: string;
+  description: string;
+  paymentType: "credit" | "debit" | "money";
+  paymentMethod: "payInFull" | "installment" | "recurrent";
+  installmentNumber: number | null;
+  installments: number | null;
+  amount: number;
+  status: string | null;
 };
 
-export function fetchTransactions(): Promise<TransactionsData> {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({ summary: MOCK_SUMMARY, transactions: MOCK_TRANSACTIONS });
-    }, 400);
-  });
+type TransactionsResponse = {
+  summary: TransactionsSummary;
+  transactions: TransactionListItemResponse[];
+};
+
+const PAYMENT_TYPE_LABEL: Record<TransactionListItemResponse["paymentType"], string> = {
+  credit: "Crédito",
+  debit: "Débito",
+  money: "Dinheiro",
+};
+
+const MONTH_ABBR = [
+  "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
+  "Jul", "Ago", "Set", "Out", "Nov", "Dez",
+];
+
+function formatDateLabel(isoDateTime: string): string {
+  const date = new Date(isoDateTime);
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${day} ${MONTH_ABBR[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+function paymentDetailFor(item: TransactionListItemResponse): string | undefined {
+  if (item.paymentMethod === "installment" && item.installmentNumber && item.installments) {
+    return `Parcelado ${item.installmentNumber}/${item.installments}`;
+  }
+  if (item.paymentMethod === "recurrent") {
+    return "Recorrente";
+  }
+  return undefined;
+}
+
+function statusFor(item: TransactionListItemResponse): TransactionStatus {
+  return item.status === "paid" ? "pago" : "pendente";
+}
+
+function toTransaction(item: TransactionListItemResponse): Transaction {
+  return {
+    id: item.id,
+    dateLabel: formatDateLabel(item.purchaseDate),
+    description: item.description,
+    paymentLabel: PAYMENT_TYPE_LABEL[item.paymentType],
+    paymentDetail: paymentDetailFor(item),
+    amount: item.amount,
+    kind: "despesa",
+    status: statusFor(item),
+  };
+}
+
+export async function fetchTransactions(params: { walletId: string }): Promise<TransactionsData> {
+  const token = getStoredToken();
+  if (!token) {
+    throw new SessionExpiredError(GENERIC_ERROR_MESSAGE);
+  }
+
+  const url = new URL(EXPENSES_ENDPOINT);
+  url.searchParams.set("walletId", params.walletId);
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch {
+    throw new AuthError(GENERIC_ERROR_MESSAGE);
+  }
+
+  if (response.status === 401) {
+    throw new SessionExpiredError(GENERIC_ERROR_MESSAGE);
+  }
+
+  if (!response.ok) {
+    throw new AuthError(GENERIC_ERROR_MESSAGE);
+  }
+
+  const data: TransactionsResponse = await response.json();
+
+  return {
+    summary: data.summary,
+    transactions: data.transactions.map(toTransaction),
+  };
 }
 
 /** Mirrors the backend's PaymentTypeEnum (credit|debit|money). */
