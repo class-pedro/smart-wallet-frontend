@@ -3,12 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getWalletId, signOut, SessionExpiredError } from "@/lib/auth";
-import {
-  fetchCardsToInput,
-  withMockFinancials,
-  type CardStatus,
-  type CreditCard,
-} from "@/lib/cards";
+import { fetchCards, type CardStatus, type CreditCard } from "@/lib/cards";
 import { AppShell } from "@/components/layout/app-shell";
 import { NewCardModal } from "@/components/cards/new-card-modal";
 
@@ -56,11 +51,10 @@ export function CardsView() {
       return;
     }
 
-    fetchCardsToInput({ walletId })
+    fetchCards({ walletId })
       .then((result) => {
-        const withFinancials = withMockFinancials(result);
-        setCards(withFinancials);
-        setState(withFinancials.length === 0 ? "empty" : "success");
+        setCards(result);
+        setState(result.length === 0 ? "empty" : "success");
       })
       .catch((error) => {
         if (error instanceof SessionExpiredError) {

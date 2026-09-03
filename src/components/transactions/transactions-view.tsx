@@ -50,7 +50,7 @@ export function TransactionsView() {
       return;
     }
 
-    fetchTransactions()
+    fetchTransactions({ walletId })
       .then((result) => {
         setSummary(result.summary);
         setTransactions(result.transactions);
