@@ -6,6 +6,7 @@ import { getWalletId, signOut, SessionExpiredError } from '@/lib/auth';
 import { fetchDashboard, type DashboardData } from '@/lib/dashboard';
 import { AppShell } from '@/components/layout/app-shell';
 import { NewExpenseModal } from '@/components/transactions/new-expense-modal';
+import { PrimaryButton } from '@/components/ui/primary-button';
 
 type ViewState = 'loading' | 'success' | 'empty' | 'error';
 
@@ -133,19 +134,19 @@ export function DashboardView() {
       <main className='flex w-full flex-col gap-space-lg px-space-md py-space-lg md:px-space-lg'>
         <div className='flex flex-col gap-space-md lg:flex-row lg:items-center sm:justify-between'>
           <div className='min-w-fit'>
-            <h1 className='text-headline-lg text-on-surface'>Dashboard</h1>
-            <p className='text-body-lg text-on-surface-variant'>
+            <h1 className='text-headline-lg text-base-content'>Dashboard</h1>
+            <p className='text-body-lg text-base-content/60'>
               Visão geral das suas despesas.
             </p>
           </div>
           <div className='w-full justify-start flex flex-col gap-space-sm sm:flex-row sm:items-center lg:justify-end'>
-            <div className='w-full flex items-center gap-space-sm md:max-w-81.25'>
+            <div className='join w-full sm:w-auto'>
               <button
                 type='button'
                 aria-label='Mês anterior'
                 disabled={state === 'loading'}
                 onClick={handlePrevMonth}
-                className='w-full flex h-10 max-w-10 items-center justify-center rounded-lg bg-surface-container text-on-surface transition-colors hover:bg-surface-container-high disabled:opacity-50 md:cursor-pointer'
+                className='btn join-item border-base-300 bg-base-100 px-space-sm'
               >
                 <span className='material-symbols-outlined text-[20px]'>
                   chevron_left
@@ -157,7 +158,7 @@ export function DashboardView() {
                 onChange={(event) =>
                   handleMonthChange(Number(event.target.value))
                 }
-                className='w-full rounded-lg border-none bg-surface-container px-space-md py-space-sm text-body-lg text-on-surface outline-none transition-colors focus:ring-0 disabled:opacity-50 md:cursor-pointer'
+                className='select join-item min-w-0 flex-1 cursor-pointer border-base-300 bg-base-100 outline-none! hover:bg-base-200 focus:outline-none! focus:border-primary! [&:open]:outline-none! [&:open]:border-primary! sm:w-37.5 sm:flex-none'
               >
                 {MONTH_NAMES.map((name, index) => (
                   <option key={name} value={index + 1}>
@@ -171,7 +172,7 @@ export function DashboardView() {
                 onChange={(event) =>
                   handleYearChange(Number(event.target.value))
                 }
-                className='w-full rounded-lg border-none bg-surface-container px-space-md py-space-sm text-body-lg text-on-surface outline-none transition-colors focus:ring-0 disabled:opacity-50 md:cursor-pointer'
+                className='select join-item min-w-0 flex-1 cursor-pointer border-base-300 bg-base-100 outline-none! hover:bg-base-200 focus:outline-none! focus:border-primary! [&:open]:outline-none! [&:open]:border-primary! sm:w-25 sm:flex-none'
               >
                 {yearOptions(now.getFullYear(), year).map((y) => (
                   <option key={y} value={y}>
@@ -184,21 +185,20 @@ export function DashboardView() {
                 aria-label='Próximo mês'
                 disabled={state === 'loading'}
                 onClick={handleNextMonth}
-                className='w-full flex h-10 max-w-10 items-center justify-center rounded-lg bg-surface-container text-on-surface transition-colors hover:bg-surface-container-high disabled:opacity-50 md:cursor-pointer'
+                className='btn join-item border-base-300 bg-base-100 px-space-sm'
               >
                 <span className='material-symbols-outlined text-[20px]'>
                   chevron_right
                 </span>
               </button>
             </div>
-            <button
-              type='button'
+            <PrimaryButton
+              icon='add'
+              className='min-w-47'
               onClick={() => setModalOpen(true)}
-              className='min-w-47 flex items-center justify-center gap-space-sm self-start rounded-lg bg-primary px-space-lg py-space-sm text-body-lg font-medium text-on-primary shadow-sm transition-colors hover:bg-primary/90 md:cursor-pointer'
             >
-              <span className='material-symbols-outlined text-[18px]'>add</span>
               Nova Despesa
-            </button>
+            </PrimaryButton>
           </div>
         </div>
 
@@ -225,58 +225,69 @@ export function DashboardView() {
 function DashboardContent({ data }: { data: DashboardData }) {
   return (
     <>
-      <div className='relative overflow-hidden rounded-xl bg-surface-container p-space-md shadow-sm'>
-        <div className='absolute -right-4 -top-4 h-24 w-24 rounded-full bg-primary/5 blur-xl' />
-        <span className='relative z-10 block text-label-md uppercase tracking-widest text-on-surface-variant'>
-          Total de Despesas
-        </span>
-        <div className='relative z-10 mt-space-sm text-headline-lg text-on-surface'>
-          {currencyFormatter.format(data.total)}
+      <div className='stats w-full shadow-md bg-base-100'>
+        <div className='stat'>
+          <div className='stat-figure text-primary flex items-center justify-center'>
+            <span className='material-symbols-outlined text-[32px]'>
+              account_balance_wallet
+            </span>
+          </div>
+          <div className='stat-title text-label-md uppercase tracking-widest'>
+            Total de Despesas
+          </div>
+          <div className='stat-value text-headline-lg text-base-content'>
+            {currencyFormatter.format(data.total)}
+          </div>
         </div>
       </div>
 
-      <div className='overflow-hidden rounded-xl bg-surface-container shadow-sm'>
-        <div className='flex items-center justify-between border-b border-surface-container-high p-space-lg'>
-          <h2 className='text-title-lg text-on-surface'>Despesas do Mês</h2>
-          <span className='text-body-md text-on-surface-variant'>
-            {data.expenses.length}{' '}
-            {data.expenses.length === 1 ? 'despesa' : 'despesas'}
-          </span>
+      <div className='card bg-base-100 shadow-md'>
+        <div className='card-body p-0'>
+          <div className='flex items-center justify-between border-b border-base-200 p-space-lg'>
+            <h2 className='card-title text-title-lg text-base-content'>
+              Despesas do Mês
+            </h2>
+            <span className='badge badge-ghost text-body-md'>
+              {data.expenses.length}{' '}
+              {data.expenses.length === 1 ? 'despesa' : 'despesas'}
+            </span>
+          </div>
+          <div className='overflow-x-auto'>
+            <table className='table'>
+              <thead>
+                <tr>
+                  <th className='text-label-md font-medium uppercase text-base-content/60'>
+                    Descrição
+                  </th>
+                  <th className='text-right text-label-md font-medium uppercase text-base-content/60'>
+                    Valor
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.expenses.map((expense) => (
+                  <tr key={expense.dashboardExpenseId} className='hover'>
+                    <td className='text-body-md text-base-content'>
+                      <div className='flex items-center gap-3'>
+                        <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary'>
+                          <span className='material-symbols-outlined text-[20px]'>
+                            receipt_long
+                          </span>
+                        </div>
+                        <span className='truncate'>
+                          {expense.dashboardExpenseDescription}
+                        </span>
+                      </div>
+                    </td>
+                    <td className='text-right text-body-md font-medium text-error'>
+                      -{currencyFormatter.format(expense.dashboardExpenseCost)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-        <table className='w-full border-collapse text-left'>
-          <thead>
-            <tr className='bg-surface-container-low'>
-              <th className='p-space-md text-label-md font-medium uppercase text-on-surface-variant'>
-                Descrição
-              </th>
-              <th className='p-space-md text-right text-label-md font-medium uppercase text-on-surface-variant'>
-                Valor
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.expenses.map((expense) => (
-              <tr
-                key={expense.dashboardExpenseId}
-                className='group transition-colors hover:bg-surface-container-high'
-              >
-                <td className='flex items-center gap-3 p-space-md text-body-md text-on-surface'>
-                  <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface text-primary shadow-sm'>
-                    <span className='material-symbols-outlined text-[20px]'>
-                      receipt_long
-                    </span>
-                  </div>
-                  <span className='truncate'>
-                    {expense.dashboardExpenseDescription}
-                  </span>
-                </td>
-                <td className='p-space-md text-right text-body-md font-medium text-error'>
-                  -{currencyFormatter.format(expense.dashboardExpenseCost)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </div>
     </>
   );
@@ -284,24 +295,21 @@ function DashboardContent({ data }: { data: DashboardData }) {
 
 function LoadingSkeleton() {
   return (
-    <div className='flex animate-pulse flex-col gap-space-lg'>
-      <div className='rounded-xl bg-surface-container-low p-space-lg shadow-sm'>
-        <div className='mb-space-lg h-5 w-32 rounded bg-surface-container' />
-        <div className='h-8 w-40 rounded-md bg-surface-container-high' />
-      </div>
-      <div className='rounded-xl bg-surface-container-low p-space-lg shadow-sm'>
-        <div className='mb-space-lg flex items-center justify-between'>
-          <div className='h-6 w-40 rounded bg-surface-container' />
-          <div className='h-5 w-16 rounded bg-surface-container' />
-        </div>
-        <div className='flex flex-col gap-space-md'>
+    <div className='flex flex-col gap-space-lg'>
+      <div className='skeleton h-24 w-full rounded-box' />
+      <div className='card bg-base-100 shadow-md'>
+        <div className='card-body gap-space-md'>
+          <div className='flex items-center justify-between'>
+            <div className='skeleton h-6 w-40' />
+            <div className='skeleton h-5 w-16' />
+          </div>
           {[0, 1, 2, 3].map((i) => (
             <div key={i} className='flex items-center justify-between'>
               <div className='flex items-center gap-space-md'>
-                <div className='h-10 w-10 rounded-full bg-surface-container' />
-                <div className='h-4 w-32 rounded bg-surface-container-high' />
+                <div className='skeleton h-10 w-10 shrink-0 rounded-full' />
+                <div className='skeleton h-4 w-32' />
               </div>
-              <div className='h-4 w-16 rounded bg-surface-container-high' />
+              <div className='skeleton h-4 w-16' />
             </div>
           ))}
         </div>
@@ -318,57 +326,20 @@ function EmptyState({
   year: number;
 }) {
   return (
-    <div className='relative flex min-h-100 flex-col items-center justify-center overflow-hidden rounded-xl bg-surface-container-lowest p-space-xl shadow-sm'>
-      <div className='pointer-events-none absolute inset-0 flex items-center justify-center opacity-40'>
-        <svg
-          className='h-105 w-105 text-surface-container'
-          viewBox='0 0 100 100'
-          fill='none'
-          aria-hidden
-        >
-          <circle
-            cx='50'
-            cy='50'
-            r='40'
-            stroke='currentColor'
-            strokeWidth='0.5'
-            strokeDasharray='2 4'
-          />
-          <circle
-            cx='50'
-            cy='50'
-            r='30'
-            stroke='currentColor'
-            strokeWidth='0.5'
-            strokeDasharray='1 6'
-          />
-          <circle
-            cx='50'
-            cy='50'
-            r='20'
-            stroke='currentColor'
-            strokeWidth='0.5'
-          />
-        </svg>
-      </div>
-      <div className='relative z-10 flex max-w-md flex-col items-center text-center'>
-        <div className='relative mb-space-lg flex h-24 w-24 items-center justify-center rounded-full bg-surface-container-low shadow-md'>
+    <div className='hero min-h-100 rounded-box bg-base-100 shadow-md'>
+      <div className='hero-content flex-col text-center'>
+        <div className='flex h-24 w-24 items-center justify-center rounded-full bg-primary/10'>
           <span
             className='material-symbols-outlined text-[48px] text-primary'
             style={{ fontVariationSettings: "'FILL' 1" }}
           >
             wallet
           </span>
-          <div className='absolute -bottom-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-lowest shadow-sm'>
-            <span className='material-symbols-outlined text-[16px] text-on-surface-variant'>
-              search_off
-            </span>
-          </div>
         </div>
-        <h2 className='mb-space-sm text-title-lg text-on-surface'>
+        <h2 className='mt-space-lg text-title-lg text-base-content'>
           Nenhuma despesa encontrada
         </h2>
-        <p className='text-body-md text-on-surface-variant'>
+        <p className='max-w-md text-body-md text-base-content/60'>
           Não há despesas registradas para {monthLabel} de {year}.
         </p>
       </div>
@@ -384,39 +355,26 @@ function ErrorState({
   onRetry: () => void;
 }) {
   return (
-    <div className='relative flex min-h-100 items-center justify-center overflow-hidden rounded-xl p-space-lg'>
-      <div className='absolute left-1/4 top-1/4 -z-10 h-80 w-80 rounded-full bg-error-container/30 blur-[100px]' />
-      <div className='absolute bottom-1/4 right-1/4 -z-10 h-56 w-56 rounded-full bg-primary-container/10 blur-[80px]' />
-      <div className='group relative flex w-full max-w-lg flex-col items-center rounded-4xl border border-outline-variant/10 bg-surface-container/30 p-space-xl text-center shadow-xl backdrop-blur-sm'>
-        <div className='relative mb-space-lg h-24 w-24'>
-          <div
-            className='absolute inset-0 animate-ping rounded-full bg-error-container opacity-20'
-            style={{ animationDuration: '3s' }}
-          />
-          <div className='absolute inset-0 animate-pulse rounded-full bg-error-container opacity-40' />
-          <div className='relative z-10 flex h-full w-full items-center justify-center rounded-full bg-surface shadow-md'>
-            <span
-              className='material-symbols-outlined text-[48px] text-error transition-transform duration-500 ease-out group-hover:scale-110'
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              error
-            </span>
-          </div>
+    <div className='hero min-h-100 rounded-box bg-base-100 shadow-md'>
+      <div className='hero-content flex-col text-center'>
+        <div className='flex h-24 w-24 items-center justify-center rounded-full bg-error/10'>
+          <span
+            className='material-symbols-outlined text-[48px] text-error'
+            style={{ fontVariationSettings: "'FILL' 1" }}
+          >
+            error
+          </span>
         </div>
-        <h2 className='mb-space-sm text-headline-lg tracking-tight text-on-surface'>
+        <h2 className='mt-space-lg text-headline-md tracking-tight text-base-content'>
           Ocorreu um erro ao carregar o dashboard
         </h2>
-        <p className='mb-space-xl max-w-sm text-body-lg text-on-surface-variant'>
-          {message}
-        </p>
+        <p className='max-w-sm text-body-lg text-base-content/60'>{message}</p>
         <button
           type='button'
           onClick={onRetry}
-          className='group flex items-center gap-space-sm rounded-xl bg-secondary-container px-space-xl py-space-md text-title-lg font-medium text-on-secondary-container shadow-sm transition-all duration-200 hover:shadow-md active:scale-95 md:cursor-pointer'
+          className='btn btn-outline btn-primary mt-space-sm'
         >
-          <span className='material-symbols-outlined transition-transform duration-500 group-hover:-rotate-180'>
-            refresh
-          </span>
+          <span className='material-symbols-outlined text-[18px]'>refresh</span>
           Tentar Novamente
         </button>
       </div>

@@ -33,7 +33,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="flex min-h-full flex-col bg-base-200 text-base-content">
+        {children}
+      </body>
     </html>
   );
 }

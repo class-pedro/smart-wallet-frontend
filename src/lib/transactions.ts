@@ -35,7 +35,7 @@ export type TransactionsData = {
 
 type TransactionListItemResponse = {
   id: string;
-  purchaseDate: string;
+  purchaseDate: string | null;
   description: string;
   paymentType: "credit" | "debit" | "money";
   paymentMethod: "payInFull" | "installment" | "recurrent";
@@ -61,7 +61,8 @@ const MONTH_ABBR = [
   "Jul", "Ago", "Set", "Out", "Nov", "Dez",
 ];
 
-function formatDateLabel(isoDateTime: string): string {
+function formatDateLabel(isoDateTime: string | null): string {
+  if (!isoDateTime) return "-";
   const date = new Date(isoDateTime);
   const day = String(date.getDate()).padStart(2, "0");
   return `${day} ${MONTH_ABBR[date.getMonth()]} ${date.getFullYear()}`;

@@ -151,22 +151,22 @@ export function NewExpenseModal({ open, walletId, onClose, onCreate }: NewExpens
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface/60 p-space-md backdrop-blur-sm">
-      <div className="flex max-h-full w-full max-w-2xl flex-col overflow-hidden rounded-xl bg-surface-container-lowest shadow-2xl">
-        <div className="flex items-start justify-between border-b border-outline-variant/30 p-space-lg">
+    <div className="modal modal-open">
+      <div className="modal-box max-w-2xl p-0">
+        <div className="flex items-start justify-between border-b border-base-300 p-space-lg">
           <div className="flex items-center gap-space-md">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-error-container">
-              <span className="material-symbols-outlined text-[20px] text-on-error-container">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-error/10">
+              <span className="material-symbols-outlined text-[20px] text-error">
                 remove
               </span>
             </div>
-            <h2 className="text-title-lg text-on-surface">Nova Despesa</h2>
+            <h2 className="text-title-lg text-base-content">Nova Despesa</h2>
           </div>
           <button
             type="button"
             onClick={handleClose}
             aria-label="Fechar"
-            className="text-on-surface-variant transition-colors hover:text-on-surface md:cursor-pointer"
+            className="btn btn-ghost btn-square btn-sm"
           >
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
@@ -179,7 +179,7 @@ export function NewExpenseModal({ open, walletId, onClose, onCreate }: NewExpens
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               placeholder="Ex: Supermercado, Aluguel..."
-              className="w-full rounded-lg border border-outline-variant/30 bg-surface px-space-md py-space-sm text-body-lg text-on-surface outline-none focus:ring-0"
+              className="input input-bordered w-full text-body-lg outline-none! focus:outline-none! focus:border-primary!"
             />
           </Field>
 
@@ -189,7 +189,7 @@ export function NewExpenseModal({ open, walletId, onClose, onCreate }: NewExpens
               inputMode="numeric"
               value={formatBRL(amountCents / 100)}
               onChange={handleAmountChange}
-              className="w-full rounded-lg border border-outline-variant/30 bg-surface-container px-space-md py-space-sm text-body-lg text-on-surface outline-none focus:ring-0"
+              className="input input-bordered w-full text-body-lg outline-none! focus:outline-none! focus:border-primary!"
             />
           </Field>
 
@@ -201,7 +201,7 @@ export function NewExpenseModal({ open, walletId, onClose, onCreate }: NewExpens
                   setPaymentMethod(event.target.value as (typeof PAYMENT_METHODS)[number]);
                   setCardId("");
                 }}
-                className="w-full rounded-lg border border-outline-variant/30 bg-surface px-space-md py-space-sm text-body-lg text-on-surface outline-none focus:ring-0 md:cursor-pointer"
+                className="select select-bordered w-full text-body-lg outline-none! focus:outline-none! focus:border-primary! [&:open]:outline-none! [&:open]:border-primary!"
               >
                 {PAYMENT_METHODS.map((method) => (
                   <option key={method} value={method}>
@@ -216,7 +216,7 @@ export function NewExpenseModal({ open, walletId, onClose, onCreate }: NewExpens
                   required
                   value={cardId}
                   onChange={(event) => setCardId(event.target.value)}
-                  className="w-full rounded-lg border border-outline-variant/30 bg-surface px-space-md py-space-sm text-body-lg text-on-surface outline-none focus:ring-0 md:cursor-pointer"
+                  className="select select-bordered w-full text-body-lg outline-none! focus:outline-none! focus:border-primary! [&:open]:outline-none! [&:open]:border-primary!"
                 >
                   <option value="">Selecione</option>
                   {cards.map((card) => (
@@ -231,16 +231,14 @@ export function NewExpenseModal({ open, walletId, onClose, onCreate }: NewExpens
 
           <div className="grid grid-cols-2 gap-space-md">
             <Field label="Método de Pagamento">
-              <div className="flex gap-space-sm">
+              <div className="join w-full">
                 {INSTALLMENT_OPTIONS.map((option) => (
                   <button
                     key={option}
                     type="button"
                     onClick={() => setInstallmentOption(option)}
-                    className={`flex-1 rounded-lg border-2 px-space-sm py-space-sm text-body-md font-medium transition-colors md:cursor-pointer ${
-                      installmentOption === option
-                        ? "border-primary bg-primary-container text-on-primary-container"
-                        : "border-transparent bg-surface-container text-on-surface-variant"
+                    className={`btn join-item flex-1 text-body-md font-medium ${
+                      installmentOption === option ? "btn-primary" : "btn-ghost bg-base-200"
                     }`}
                   >
                     {option}
@@ -256,7 +254,7 @@ export function NewExpenseModal({ open, walletId, onClose, onCreate }: NewExpens
                 value={installments}
                 onChange={(event) => setInstallments(event.target.value)}
                 placeholder="Ex: 12"
-                className="w-full rounded-lg border border-outline-variant/30 bg-surface px-space-md py-space-sm text-body-lg text-on-surface outline-none focus:ring-0 disabled:opacity-40"
+                className="input input-bordered w-full text-body-lg outline-none! focus:outline-none! focus:border-primary! disabled:opacity-40"
               />
             </Field>
           </div>
@@ -269,35 +267,28 @@ export function NewExpenseModal({ open, walletId, onClose, onCreate }: NewExpens
               type="date"
               value={purchaseDate}
               onChange={(event) => setPurchaseDate(event.target.value)}
-              className="w-full rounded-lg border border-outline-variant/30 bg-surface px-space-md py-space-sm text-body-lg text-on-surface outline-none focus:ring-0"
+              className="input input-bordered w-full text-body-lg outline-none! focus:outline-none! focus:border-primary!"
             />
           </Field>
 
           {errorMessage && (
-            <p className="rounded-lg bg-error/10 px-space-md py-space-sm text-body-md text-error">
-              {errorMessage}
-            </p>
+            <div role="alert" className="alert alert-error alert-soft text-body-md">
+              <span>{errorMessage}</span>
+            </div>
           )}
 
-          <div className="flex justify-end gap-space-sm border-t border-outline-variant/30 pt-space-md">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="rounded-lg px-space-lg py-space-sm text-body-lg font-medium text-on-surface-variant transition-colors hover:bg-surface-container md:cursor-pointer"
-            >
+          <div className="modal-action mt-0 border-t border-base-300 pt-space-md">
+            <button type="button" onClick={handleClose} className="btn btn-ghost">
               Cancelar
             </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="flex items-center gap-space-xs rounded-lg bg-primary px-space-lg py-space-sm text-body-lg font-medium text-on-primary shadow-sm transition-colors hover:bg-primary/90 disabled:opacity-60 md:cursor-pointer"
-            >
+            <button type="submit" disabled={submitting} className="btn btn-primary">
               <span className="material-symbols-outlined text-[18px]">save</span>
               {submitting ? "Salvando..." : "Salvar Despesa"}
             </button>
           </div>
         </form>
       </div>
+      <button type="button" onClick={handleClose} aria-label="Fechar" className="modal-backdrop" />
     </div>
   );
 }
@@ -313,20 +304,11 @@ function Field({
 }) {
   return (
     <label className="flex flex-col gap-space-xs">
-      <span className="flex items-center gap-space-xs text-body-md text-on-surface-variant">
-        {label}
-        {hint && (
-          <span
-            title={hint}
-            aria-label={hint}
-            tabIndex={0}
-            className="material-symbols-outlined cursor-help text-[16px] text-on-surface-variant/60"
-          >
-            info
-          </span>
-        )}
-      </span>
+      <span className="text-body-md text-base-content/70">{label}</span>
       {children}
+      {hint && (
+        <span className="text-label-md text-base-content/40">{hint}</span>
+      )}
     </label>
   );
 }

@@ -9,16 +9,16 @@ export const metadata: Metadata = {
 
 export default function CompleteProfilePage() {
   return (
-    <main className="flex min-h-screen flex-1 flex-col items-center justify-center gap-8 bg-surface-bright p-4">
+    <main className="flex min-h-screen flex-1 flex-col items-center justify-center gap-8 bg-base-200 p-4">
       <div className="flex w-full max-w-md flex-col items-center gap-8">
         <div className="flex flex-col items-center gap-2">
-          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20">
-            <WalletIcon className="h-8 w-8 text-on-primary" />
+          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary text-primary-content shadow-lg shadow-primary/20">
+            <WalletIcon className="h-8 w-8" />
           </div>
-          <h1 className="mt-2 text-[31.25px] font-semibold tracking-tight text-on-surface">
+          <h1 className="mt-2 text-[31.25px] font-semibold tracking-tight text-base-content">
             Smart Wallet
           </h1>
-          <p className="text-sm text-on-surface-variant">
+          <p className="text-sm text-base-content/60">
             Só mais um passo para começar
           </p>
         </div>
