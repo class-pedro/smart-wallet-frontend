@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getWalletId, signOut, SessionExpiredError } from '@/lib/auth';
 import { fetchCards, type CardStatus, type CreditCard } from '@/lib/cards';
 import { AppShell } from '@/components/layout/app-shell';
 import { NewCardModal } from '@/components/cards/new-card-modal';
+import { PrimaryButton } from '@/components/ui/primary-button';
 
 type ViewState = 'loading' | 'success' | 'empty' | 'error';
 
@@ -23,22 +24,22 @@ const STATUS_LABEL: Record<CardStatus, string> = {
   paga: 'Paga',
 };
 
-const STATUS_CLASSES: Record<CardStatus, string> = {
-  aberta: 'bg-success/10 text-success',
-  fechada: 'bg-error/10 text-error',
-  paga: 'bg-surface-container-high text-on-surface-variant',
+const STATUS_BADGE: Record<CardStatus, string> = {
+  aberta: 'badge-success',
+  fechada: 'badge-error',
+  paga: 'badge-neutral',
 };
 
 const TILE_ACCENTS = [
   'bg-primary/10 text-primary',
-  'bg-tertiary/10 text-tertiary',
-  'bg-surface-container-highest text-on-surface-variant',
+  'bg-accent/10 text-accent',
+  'bg-secondary/10 text-secondary',
 ];
 
 const CARD_FACE_GRADIENTS = [
-  'from-primary to-on-primary-fixed-variant',
-  'from-tertiary to-on-tertiary-fixed-variant',
-  'from-secondary to-on-secondary-fixed-variant',
+  'from-primary to-blue-800',
+  'from-accent to-orange-800',
+  'from-secondary to-teal-800',
 ];
 
 export function CardsView() {
@@ -99,20 +100,15 @@ export function CardsView() {
       <main className='flex w-full flex-col gap-space-lg px-space-md py-space-lg md:px-space-lg'>
         <div className='flex flex-col gap-space-md sm:flex-row sm:items-end sm:justify-between'>
           <div>
-            <h1 className='text-headline-lg text-on-surface'>Meus Cartões</h1>
-            <p className='text-body-lg text-on-surface-variant'>
+            <h1 className='text-headline-lg text-base-content'>Meus Cartões</h1>
+            <p className='text-body-lg text-base-content/60'>
               Gerencie seus limites e faturas.
             </p>
           </div>
           {state !== 'empty' && (
-            <button
-              type='button'
-              onClick={() => setModalOpen(true)}
-              className='flex items-center gap-space-sm self-start rounded-lg bg-primary px-space-lg py-space-sm text-body-lg font-medium text-on-primary shadow-sm transition-colors hover:bg-primary/90 md:cursor-pointer'
-            >
-              <span className='material-symbols-outlined text-[18px]'>add</span>
+            <PrimaryButton icon='add' onClick={() => setModalOpen(true)}>
               Adicionar Cartão
-            </button>
+            </PrimaryButton>
           )}
         </div>
 
@@ -155,84 +151,81 @@ function CardsContent({
           <button
             type='button'
             onClick={onAddCard}
-            className='flex min-h-55 flex-col items-center justify-center gap-space-sm rounded-xl border-2 border-dashed border-outline-variant bg-surface-container p-space-lg text-center transition-colors hover:bg-surface-container-high md:cursor-pointer'
+            className='flex min-h-55 flex-col items-center justify-center gap-space-sm rounded-box border-2 border-dashed border-base-300 bg-base-100 p-space-lg text-center transition-colors hover:bg-base-200 md:cursor-pointer'
           >
-            <div className='flex h-12 w-12 items-center justify-center rounded-full bg-secondary-container'>
-              <span className='material-symbols-outlined text-[22px] text-on-secondary-container'>
+            <div className='flex h-12 w-12 items-center justify-center rounded-full bg-secondary/10'>
+              <span className='material-symbols-outlined text-[22px] text-secondary'>
                 add_card
               </span>
             </div>
-            <span className='text-title-lg text-on-surface'>Novo Cartão</span>
-            <span className='text-body-md text-on-surface-variant'>
+            <span className='text-title-lg text-base-content'>Novo Cartão</span>
+            <span className='text-body-md text-base-content/60'>
               Adicione um novo cartão de crédito
             </span>
           </button>
         )}
       </div>
 
-      <div className='overflow-hidden rounded-xl bg-surface-container shadow-sm'>
-        <div className='flex items-center justify-between border-b border-surface-container-high p-space-lg'>
-          <h2 className='text-title-lg text-on-surface'>
-            Detalhamento de Faturas
-          </h2>
-        </div>
-        <div className='overflow-x-auto'>
-          <table className='w-full min-w-175 border-collapse text-left'>
-            <thead>
-              <tr className='bg-surface-container-high'>
-                <th className='p-space-md text-label-md font-medium uppercase text-on-surface-variant'>
-                  Cartão
-                </th>
-                <th className='p-space-md text-label-md font-medium uppercase text-on-surface-variant'>
-                  Final
-                </th>
-                <th className='p-space-md text-label-md font-medium uppercase text-on-surface-variant'>
-                  Vencimento
-                </th>
-                <th className='p-space-md text-label-md font-medium uppercase text-on-surface-variant'>
-                  Status
-                </th>
-                <th className='p-space-md text-right text-label-md font-medium uppercase text-on-surface-variant'>
-                  Valor Total
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {cards.map((card, index) => (
-                <tr
-                  key={card.id}
-                  className='group transition-colors hover:bg-surface-container-high'
-                >
-                  <td className='flex items-center gap-3 p-space-md text-body-md text-on-surface'>
-                    <div
-                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded ${TILE_ACCENTS[index % TILE_ACCENTS.length]}`}
-                    >
-                      <span className='material-symbols-outlined text-[18px]'>
-                        credit_card
-                      </span>
-                    </div>
-                    <span className='truncate font-medium'>{card.name}</span>
-                  </td>
-                  <td className='p-space-md text-body-md text-on-surface-variant'>
-                    ••••
-                  </td>
-                  <td className='p-space-md text-body-md text-on-surface'>
-                    {card.dueDateLabel}
-                  </td>
-                  <td className='p-space-md'>
-                    <span
-                      className={`rounded-full px-space-sm py-unit text-label-md font-medium ${STATUS_CLASSES[card.status]}`}
-                    >
-                      {STATUS_LABEL[card.status]}
-                    </span>
-                  </td>
-                  <td className='p-space-md text-right text-body-md font-medium text-on-surface'>
-                    {currencyFormatter.format(card.currentInvoice)}
-                  </td>
+      <div className='card bg-base-100 shadow-md'>
+        <div className='card-body p-0'>
+          <div className='flex items-center justify-between border-b border-base-200 p-space-lg'>
+            <h2 className='card-title text-title-lg text-base-content'>
+              Detalhamento de Faturas
+            </h2>
+          </div>
+          <div className='overflow-x-auto'>
+            <table className='table'>
+              <thead>
+                <tr>
+                  <th className='text-label-md font-medium uppercase text-base-content/60'>
+                    Cartão
+                  </th>
+                  <th className='text-label-md font-medium uppercase text-base-content/60'>
+                    Final
+                  </th>
+                  <th className='text-label-md font-medium uppercase text-base-content/60'>
+                    Vencimento
+                  </th>
+                  <th className='text-label-md font-medium uppercase text-base-content/60'>
+                    Status
+                  </th>
+                  <th className='text-right text-label-md font-medium uppercase text-base-content/60'>
+                    Valor Total
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {cards.map((card, index) => (
+                  <tr key={card.id} className='hover'>
+                    <td className='text-body-md text-base-content'>
+                      <div className='flex items-center gap-3'>
+                        <div
+                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded ${TILE_ACCENTS[index % TILE_ACCENTS.length]}`}
+                        >
+                          <span className='material-symbols-outlined text-[18px]'>
+                            credit_card
+                          </span>
+                        </div>
+                        <span className='truncate font-medium'>{card.name}</span>
+                      </div>
+                    </td>
+                    <td className='text-body-md text-base-content/60'>••••</td>
+                    <td className='text-body-md text-base-content'>
+                      {card.dueDateLabel}
+                    </td>
+                    <td>
+                      <span className={`badge ${STATUS_BADGE[card.status]} badge-soft`}>
+                        {STATUS_LABEL[card.status]}
+                      </span>
+                    </td>
+                    <td className='text-right text-body-md font-medium text-base-content'>
+                      {currencyFormatter.format(card.currentInvoice)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </>
@@ -240,6 +233,7 @@ function CardsContent({
 }
 
 function CardTile({ card, index }: { card: CreditCard; index: number }) {
+  const faceRef = useRef<HTMLDivElement>(null);
   const usagePercent = Math.min(
     100,
     Math.round((card.currentInvoice / card.creditLimit) * 100),
@@ -252,17 +246,50 @@ function CardTile({ card, index }: { card: CreditCard; index: number }) {
         : 'Fatura Paga';
   const gradientClass = CARD_FACE_GRADIENTS[index % CARD_FACE_GRADIENTS.length];
 
+  function handleFaceMouseMove(event: React.MouseEvent<HTMLDivElement>) {
+    const face = faceRef.current;
+    if (!face) return;
+    const rect = face.getBoundingClientRect();
+    const px = (event.clientX - rect.left) / rect.width;
+    const py = (event.clientY - rect.top) / rect.height;
+    const rotateY = (px - 0.5) * 16;
+    const rotateX = (0.5 - py) * 16;
+    face.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.03, 1.03, 1.03)`;
+    face.style.setProperty('--shine-x', `${px * 100}%`);
+    face.style.setProperty('--shine-y', `${py * 100}%`);
+    face.style.setProperty('--shine-opacity', '1');
+  }
+
+  function handleFaceMouseLeave() {
+    const face = faceRef.current;
+    if (!face) return;
+    face.style.transform = '';
+    face.style.setProperty('--shine-opacity', '0');
+  }
+
   return (
-    <div className='rounded-xl bg-surface-container p-space-lg shadow-sm'>
-      <div className='hover-3d w-full'>
+    <div className='card bg-base-100 shadow-md transition-shadow hover:shadow-lg'>
+      <div className='card-body gap-space-md'>
         <div
-          className={`aspect-[1.586/1] w-full rounded-xl p-space-md bg-gradient-to-br text-on-primary shadow-md ${gradientClass} 2xl:p-space-lg`}
+          ref={faceRef}
+          onMouseMove={handleFaceMouseMove}
+          onMouseLeave={handleFaceMouseLeave}
+          className={`relative aspect-[1.586/1] w-full overflow-hidden rounded-box p-space-md bg-linear-to-br text-primary-content shadow-md transition-transform duration-200 ease-out will-change-transform ${gradientClass} 2xl:p-space-lg`}
         >
+          <div
+            aria-hidden
+            className='pointer-events-none absolute inset-0 rounded-box transition-opacity duration-200'
+            style={{
+              opacity: 'var(--shine-opacity, 0)',
+              background:
+                'radial-gradient(circle at var(--shine-x, 50%) var(--shine-y, 50%), rgba(255,255,255,.35), transparent 60%)',
+            }}
+          />
           <div className='flex items-start justify-between'>
             <span className='material-symbols-outlined text-[26px]'>
               contactless
             </span>
-            <span className='rounded-full bg-white/20 px-space-sm py-unit text-label-md font-medium uppercase tracking-widest backdrop-blur-sm'>
+            <span className='badge badge-sm border-white/30 bg-white/20 uppercase tracking-widest text-white backdrop-blur-sm'>
               {invoiceLabel}
             </span>
           </div>
@@ -283,50 +310,37 @@ function CardTile({ card, index }: { card: CreditCard; index: number }) {
             </span>
           </div>
         </div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-      </div>
 
-      <div className='mt-space-lg text-headline-md text-on-surface'>
-        {currencyFormatter.format(card.currentInvoice)}
-      </div>
-
-      <div className='mt-space-sm flex flex-col gap-space-xs'>
-        <div className='flex items-center justify-between text-body-md'>
-          <span className='text-on-surface-variant'>Limite Utilizado</span>
-          <span className='text-on-surface'>
-            {currencyFormatter.format(card.currentInvoice)} /{' '}
-            {currencyFormatter.format(card.creditLimit)}
-          </span>
+        <div className='text-headline-md text-base-content'>
+          {currencyFormatter.format(card.currentInvoice)}
         </div>
-        <div className='h-2 w-full overflow-hidden rounded-full bg-surface-container-highest'>
-          <div
-            className='h-full rounded-full bg-primary'
-            style={{ width: `${usagePercent}%` }}
+
+        <div className='flex flex-col gap-space-xs'>
+          <div className='flex items-center justify-between text-body-md'>
+            <span className='text-base-content/60'>Limite Utilizado</span>
+            <span className='text-base-content'>
+              {currencyFormatter.format(card.currentInvoice)} /{' '}
+              {currencyFormatter.format(card.creditLimit)}
+            </span>
+          </div>
+          <progress
+            className='progress progress-primary w-full'
+            value={usagePercent}
+            max={100}
           />
         </div>
-      </div>
 
-      <div className='mt-space-md flex items-end justify-between'>
-        <div>
-          <span className='block text-label-md font-medium uppercase text-on-surface-variant'>
-            Vencimento
-          </span>
-          <span className='text-title-lg text-on-surface'>
-            {card.dueDateLabel}
+        <div className='flex items-end justify-between'>
+          <div>
+            <span className='block text-label-md font-medium uppercase text-base-content/60'>
+              Vencimento
+            </span>
+            <span className='text-title-lg text-base-content'>{card.dueDateLabel}</span>
+          </div>
+          <span className={`badge ${STATUS_BADGE[card.status]} badge-soft`}>
+            {STATUS_LABEL[card.status]}
           </span>
         </div>
-        <span
-          className={`rounded-full px-space-sm py-unit text-label-md font-medium ${STATUS_CLASSES[card.status]}`}
-        >
-          {STATUS_LABEL[card.status]}
-        </span>
       </div>
     </div>
   );
@@ -334,46 +348,41 @@ function CardTile({ card, index }: { card: CreditCard; index: number }) {
 
 function LoadingSkeleton() {
   return (
-    <div className='flex animate-pulse flex-col gap-space-lg'>
+    <div className='flex flex-col gap-space-lg'>
       <div className='grid grid-cols-1 gap-space-lg sm:grid-cols-2 lg:grid-cols-3'>
         {[0, 1, 2].map((i) => (
-          <div
-            key={i}
-            className='h-55 rounded-xl bg-surface-container-low shadow-sm'
-          />
+          <div key={i} className='skeleton h-55 w-full rounded-box' />
         ))}
       </div>
-      <div className='h-64 rounded-xl bg-surface-container-low shadow-sm' />
+      <div className='skeleton h-64 w-full rounded-box' />
     </div>
   );
 }
 
 function EmptyState({ onAddCard }: { onAddCard: () => void }) {
   return (
-    <div className='flex min-h-100 flex-col items-center justify-center rounded-xl bg-surface-container-lowest p-space-xl text-center shadow-sm'>
-      <div className='mb-space-lg flex h-24 w-24 items-center justify-center rounded-full bg-secondary-container shadow-md'>
-        <span
-          className='material-symbols-outlined text-[48px] text-on-secondary-container'
-          style={{ fontVariationSettings: "'FILL' 1" }}
-        >
-          credit_card
-        </span>
+    <div className='hero min-h-100 rounded-box bg-base-100 shadow-md'>
+      <div className='hero-content flex-col text-center'>
+        <div className='flex h-24 w-24 items-center justify-center rounded-full bg-secondary/10'>
+          <span
+            className='material-symbols-outlined text-[48px] text-secondary'
+            style={{ fontVariationSettings: "'FILL' 1" }}
+          >
+            credit_card
+          </span>
+        </div>
+        <h2 className='mt-space-lg text-headline-md text-base-content'>
+          Nenhum cartão cadastrado
+        </h2>
+        <p className='max-w-sm text-body-lg text-base-content/60'>
+          Cadastre seus cartões de crédito para gerenciar seus limites e
+          vencimentos em um só lugar.
+        </p>
+        <button type='button' onClick={onAddCard} className='btn btn-primary mt-space-sm'>
+          <span className='material-symbols-outlined text-[18px]'>add</span>
+          Adicionar Primeiro Cartão
+        </button>
       </div>
-      <h2 className='mb-space-sm text-headline-md text-on-surface'>
-        Nenhum cartão cadastrado
-      </h2>
-      <p className='mb-space-lg max-w-sm text-body-lg text-on-surface-variant'>
-        Cadastre seus cartões de crédito para gerenciar seus limites e
-        vencimentos em um só lugar.
-      </p>
-      <button
-        type='button'
-        onClick={onAddCard}
-        className='flex items-center gap-space-sm rounded-xl bg-primary px-space-xl py-space-md text-title-lg font-medium text-on-primary shadow-sm transition-all hover:shadow-md active:scale-95 md:cursor-pointer'
-      >
-        <span className='material-symbols-outlined text-[18px]'>add</span>
-        Adicionar Primeiro Cartão
-      </button>
     </div>
   );
 }
@@ -386,9 +395,9 @@ function ErrorState({
   onRetry: () => void;
 }) {
   return (
-    <div className='flex min-h-100 items-center justify-center rounded-xl p-space-lg'>
-      <div className='flex w-full max-w-lg flex-col items-center rounded-4xl border border-outline-variant/10 bg-surface-container/30 p-space-xl text-center shadow-xl backdrop-blur-sm'>
-        <div className='mb-space-lg flex h-24 w-24 items-center justify-center rounded-full bg-surface shadow-md'>
+    <div className='hero min-h-100 rounded-box bg-base-100 shadow-md'>
+      <div className='hero-content flex-col text-center'>
+        <div className='flex h-24 w-24 items-center justify-center rounded-full bg-error/10'>
           <span
             className='material-symbols-outlined text-[48px] text-error'
             style={{ fontVariationSettings: "'FILL' 1" }}
@@ -396,18 +405,12 @@ function ErrorState({
             error
           </span>
         </div>
-        <h2 className='mb-space-sm text-headline-lg tracking-tight text-on-surface'>
+        <h2 className='mt-space-lg text-headline-lg tracking-tight text-base-content'>
           Ocorreu um erro ao carregar seus cartões
         </h2>
-        <p className='mb-space-xl max-w-sm text-body-lg text-on-surface-variant'>
-          {message}
-        </p>
-        <button
-          type='button'
-          onClick={onRetry}
-          className='flex items-center gap-space-sm rounded-xl bg-secondary-container px-space-xl py-space-md text-title-lg font-medium text-on-secondary-container shadow-sm transition-all hover:shadow-md active:scale-95 md:cursor-pointer'
-        >
-          <span className='material-symbols-outlined'>refresh</span>
+        <p className='max-w-sm text-body-lg text-base-content/60'>{message}</p>
+        <button type='button' onClick={onRetry} className='btn btn-outline btn-primary mt-space-sm'>
+          <span className='material-symbols-outlined text-[18px]'>refresh</span>
           Tentar Novamente
         </button>
       </div>

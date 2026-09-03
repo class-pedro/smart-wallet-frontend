@@ -9,18 +9,18 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <main className="flex min-h-screen flex-1 flex-col items-center justify-center gap-8 bg-surface-bright p-4">
+    <main className="flex min-h-screen flex-1 flex-col items-center justify-center gap-8 bg-base-200 p-4">
       <div className="flex w-full max-w-md flex-col items-center gap-8">
         <div className="flex flex-col items-center gap-2">
-          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20">
-            <WalletIcon className="h-6 w-6 text-on-primary" />
+          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary text-primary-content shadow-lg shadow-primary/20">
+            <WalletIcon className="h-6 w-6" />
           </div>
           <div className="pt-4">
-            <h1 className="text-headline-lg tracking-tight text-on-surface">
+            <h1 className="text-headline-lg tracking-tight text-base-content">
               Smart Wallet
             </h1>
           </div>
-          <p className="text-body-md text-on-surface-variant">
+          <p className="text-body-md text-base-content/60">
             Acesso seguro à sua gestão financeira
           </p>
         </div>
@@ -28,11 +28,11 @@ export default function LoginPage() {
         <LoginCard />
       </div>
 
-      <div className="flex items-center gap-4 text-label-md text-on-surface-variant">
+      <div className="flex items-center gap-4 text-label-md text-base-content/60">
         <a className="transition-colors hover:text-primary" href="#">
           Política de Segurança
         </a>
-        <span className="h-1 w-1 rounded-full bg-outline-variant" />
+        <span className="h-1 w-1 rounded-full bg-base-300" />
         <a className="transition-colors hover:text-primary" href="#">
           Status do Sistema
         </a>

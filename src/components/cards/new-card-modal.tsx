@@ -89,12 +89,12 @@ export function NewCardModal({ open, walletId, onClose, onCreate }: NewCardModal
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface/60 p-space-md backdrop-blur-sm">
-      <div className="flex max-h-full w-full max-w-lg flex-col overflow-hidden rounded-lg bg-surface-container-lowest shadow-2xl">
-        <div className="flex items-start justify-between border-b border-outline-variant/30 p-space-lg">
+    <div className="modal modal-open">
+      <div className="modal-box max-w-lg p-0">
+        <div className="flex items-start justify-between border-b border-base-300 p-space-lg">
           <div>
-            <h2 className="text-headline-md tracking-tight text-on-surface">Novo Cartão</h2>
-            <p className="text-body-md text-on-surface-variant">
+            <h2 className="text-headline-md tracking-tight text-base-content">Novo Cartão</h2>
+            <p className="text-body-md text-base-content/60">
               Adicione um novo cartão de crédito para acompanhar seus gastos.
             </p>
           </div>
@@ -102,7 +102,7 @@ export function NewCardModal({ open, walletId, onClose, onCreate }: NewCardModal
             type="button"
             onClick={handleClose}
             aria-label="Fechar"
-            className="text-on-surface-variant transition-colors hover:text-on-surface md:cursor-pointer"
+            className="btn btn-ghost btn-square btn-sm"
           >
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
@@ -115,7 +115,7 @@ export function NewCardModal({ open, walletId, onClose, onCreate }: NewCardModal
               value={name}
               onChange={(event) => setName(event.target.value)}
               placeholder="Ex: Itaú Visa Infinite"
-              className="w-full rounded-lg border border-outline-variant/30 bg-surface px-space-md py-space-sm text-body-md text-on-surface outline-none focus:ring-0"
+              className="input input-bordered w-full outline-none! focus:outline-none! focus:border-primary!"
             />
           </Field>
 
@@ -124,7 +124,7 @@ export function NewCardModal({ open, walletId, onClose, onCreate }: NewCardModal
               required
               value={cardTypeId}
               onChange={(event) => setCardTypeId(event.target.value)}
-              className="w-full rounded-lg border border-outline-variant/30 bg-surface px-space-md py-space-sm text-body-md text-on-surface outline-none focus:ring-0 md:cursor-pointer"
+              className="select select-bordered w-full outline-none! focus:outline-none! focus:border-primary! [&:open]:outline-none! [&:open]:border-primary!"
             >
               <option value="" disabled>
                 Selecione
@@ -147,7 +147,7 @@ export function NewCardModal({ open, walletId, onClose, onCreate }: NewCardModal
                 value={creditLimit}
                 onChange={(event) => setCreditLimit(event.target.value)}
                 placeholder="0,00"
-                className="w-full rounded-lg border border-outline-variant/30 bg-surface px-space-md py-space-sm text-body-md text-on-surface outline-none focus:ring-0"
+                className="input input-bordered w-full outline-none! focus:outline-none! focus:border-primary!"
               />
             </Field>
             {!isCredit && (
@@ -159,7 +159,7 @@ export function NewCardModal({ open, walletId, onClose, onCreate }: NewCardModal
                   value={balance}
                   onChange={(event) => setBalance(event.target.value)}
                   placeholder="0,00"
-                  className="w-full rounded-lg border border-outline-variant/30 bg-surface px-space-md py-space-sm text-body-md text-on-surface outline-none focus:ring-0"
+                  className="input input-bordered w-full outline-none! focus:outline-none! focus:border-primary!"
                 />
               </Field>
             )}
@@ -171,7 +171,7 @@ export function NewCardModal({ open, walletId, onClose, onCreate }: NewCardModal
                 required
                 value={closingDay}
                 onChange={(event) => setClosingDay(event.target.value)}
-                className="w-full rounded-lg border border-outline-variant/30 bg-surface px-space-md py-space-sm text-body-md text-on-surface outline-none focus:ring-0 md:cursor-pointer"
+                className="select select-bordered w-full outline-none! focus:outline-none! focus:border-primary! [&:open]:outline-none! [&:open]:border-primary!"
               >
                 <option value="" disabled>
                   Selecione
@@ -188,7 +188,7 @@ export function NewCardModal({ open, walletId, onClose, onCreate }: NewCardModal
                 required
                 value={dueDay}
                 onChange={(event) => setDueDay(event.target.value)}
-                className="w-full rounded-lg border border-outline-variant/30 bg-surface px-space-md py-space-sm text-body-md text-on-surface outline-none focus:ring-0 md:cursor-pointer"
+                className="select select-bordered w-full outline-none! focus:outline-none! focus:border-primary! [&:open]:outline-none! [&:open]:border-primary!"
               >
                 <option value="" disabled>
                   Selecione
@@ -202,40 +202,33 @@ export function NewCardModal({ open, walletId, onClose, onCreate }: NewCardModal
             </Field>
           </div>
 
-          <div className="flex gap-space-md rounded-xl border border-secondary-container bg-secondary-container/30 p-space-md">
+          <div role="alert" className="alert bg-secondary/10 text-base-content items-start">
             <span className="material-symbols-outlined shrink-0 text-secondary">lightbulb</span>
-            <p className="text-body-md text-on-surface-variant">
-              <span className="font-medium text-on-surface">Dica de Gestão: </span>
+            <p className="text-body-md text-base-content/70">
+              <span className="font-medium text-base-content">Dica de Gestão: </span>
               Recomendamos deixar pelo menos 7 dias de diferença entre o fechamento e o vencimento da
               fatura.
             </p>
           </div>
 
           {errorMessage && (
-            <p className="rounded-lg bg-error/10 px-space-md py-space-sm text-body-md text-error">
-              {errorMessage}
-            </p>
+            <div role="alert" className="alert alert-error alert-soft text-body-md">
+              <span>{errorMessage}</span>
+            </div>
           )}
 
-          <div className="flex justify-end gap-space-sm border-t border-outline-variant/30 pt-space-md">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="rounded-lg border border-outline-variant/30 bg-surface px-space-lg py-space-sm text-body-lg font-medium text-on-surface transition-colors hover:bg-surface-container md:cursor-pointer"
-            >
+          <div className="modal-action mt-0 border-t border-base-300 pt-space-md">
+            <button type="button" onClick={handleClose} className="btn btn-ghost">
               Cancelar
             </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="flex items-center gap-space-xs rounded-lg bg-primary px-space-md py-space-sm text-body-lg font-medium text-on-primary shadow-sm transition-colors hover:bg-primary/90 disabled:opacity-60 md:cursor-pointer"
-            >
+            <button type="submit" disabled={submitting} className="btn btn-primary">
               <span className="material-symbols-outlined text-[18px]">save</span>
               {submitting ? "Salvando..." : "Salvar Cartão"}
             </button>
           </div>
         </form>
       </div>
+      <button type="button" onClick={handleClose} aria-label="Fechar" className="modal-backdrop" />
     </div>
   );
 }
@@ -243,7 +236,7 @@ export function NewCardModal({ open, walletId, onClose, onCreate }: NewCardModal
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="flex flex-col gap-space-xs">
-      <span className="text-label-md font-medium text-on-surface">{label}</span>
+      <span className="text-label-md font-medium text-base-content">{label}</span>
       {children}
     </label>
   );

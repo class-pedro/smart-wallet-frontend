@@ -11,6 +11,7 @@ import {
 } from '@/lib/transactions';
 import { AppShell } from '@/components/layout/app-shell';
 import { NewExpenseModal } from '@/components/transactions/new-expense-modal';
+import { PrimaryButton } from '@/components/ui/primary-button';
 
 type ViewState = 'loading' | 'success' | 'error';
 
@@ -28,10 +29,10 @@ const STATUS_LABEL: Record<TransactionStatus, string> = {
   recebido: 'Recebido',
 };
 
-const STATUS_CLASSES: Record<TransactionStatus, string> = {
-  pago: 'bg-success/10 text-success',
-  pendente: 'bg-warning/10 text-warning',
-  recebido: 'bg-success/10 text-success',
+const STATUS_BADGE: Record<TransactionStatus, string> = {
+  pago: 'badge-success',
+  pendente: 'badge-warning',
+  recebido: 'badge-success',
 };
 
 export function TransactionsView() {
@@ -97,19 +98,18 @@ export function TransactionsView() {
       <main className='flex w-full flex-col gap-space-lg px-space-md py-space-lg md:px-space-lg'>
         <div className='flex flex-col gap-space-md sm:flex-row sm:items-end sm:justify-between'>
           <div>
-            <h1 className='text-headline-lg text-on-surface'>Transações</h1>
-            <p className='text-body-lg text-on-surface-variant'>
+            <h1 className='text-headline-lg text-base-content'>Transações</h1>
+            <p className='text-body-lg text-base-content/60'>
               Gerencie suas receitas e despesas.
             </p>
           </div>
-          <button
-            type='button'
+          <PrimaryButton
+            icon='add'
+            className='min-w-47'
             onClick={() => setModalOpen(true)}
-            className='min-w-47 flex items-center gap-space-sm self-start rounded-lg bg-primary px-space-lg py-space-sm text-body-lg font-medium text-on-primary shadow-sm transition-colors hover:bg-primary/90 md:cursor-pointer'
           >
-            <span className='material-symbols-outlined text-[18px]'>add</span>
             Nova Despesa
-          </button>
+          </PrimaryButton>
         </div>
 
         {state === 'loading' && <LoadingSkeleton />}
@@ -140,11 +140,8 @@ function TransactionsContent({
 }) {
   return (
     <>
-      <div className='grid grid-cols-1 gap-space-md sm:grid-cols-2 lg:grid-cols-4'>
-        <StatCard
-          label='Saldo Atual'
-          value={currencyFormatter.format(summary.currentBalance)}
-        />
+      <div className='stats stats-vertical sm:stats-horizontal w-full bg-base-100 shadow-md'>
+        <StatCard label='Saldo Atual' value={currencyFormatter.format(summary.currentBalance)} />
         <StatCard
           label='Despesas Mês'
           value={currencyFormatter.format(summary.monthExpenses)}
@@ -155,117 +152,101 @@ function TransactionsContent({
           value={currencyFormatter.format(summary.monthIncome)}
           valueClass='text-success'
         />
-        <button
-          type='button'
-          disabled
-          title='Em breve'
-          className='flex flex-col items-center justify-center gap-space-xs rounded-xl bg-surface-container-high p-space-md text-on-surface-variant disabled:cursor-default disabled:opacity-60'
-        >
-          <span className='material-symbols-outlined text-[24px]'>
-            download
-          </span>
-          <span className='text-label-md uppercase tracking-widest'>
-            Exportar Relatório
-          </span>
-        </button>
+        <div className='stat opacity-60'>
+          <button type='button' disabled title='Em breve' className='flex flex-col items-center gap-space-xs disabled:cursor-default'>
+            <span className='material-symbols-outlined text-[24px]'>download</span>
+            <span className='stat-title text-label-md uppercase tracking-widest'>
+              Exportar Relatório
+            </span>
+          </button>
+        </div>
       </div>
 
-      <div className='overflow-hidden rounded-xl bg-surface-container-lowest shadow-sm'>
-        <div className='flex items-center justify-between p-space-lg'>
-          <h2 className='text-title-lg text-on-surface'>Últimos Lançamentos</h2>
-          <div className='flex gap-space-sm'>
-            <span
-              title='Em breve'
-              className='cursor-default rounded-full bg-surface-container px-space-md py-space-xs text-body-md text-on-surface-variant opacity-60'
-            >
-              Filtrar
-            </span>
-            <span
-              title='Em breve'
-              className='cursor-default rounded-full bg-surface-container px-space-md py-space-xs text-body-md text-on-surface-variant opacity-60'
-            >
-              Ordenar
+      <div className='card bg-base-100 shadow-md'>
+        <div className='card-body p-0'>
+          <div className='flex items-center justify-between p-space-lg'>
+            <h2 className='card-title text-title-lg text-base-content'>Últimos Lançamentos</h2>
+            <div className='flex gap-space-sm'>
+              <span title='Em breve' className='badge badge-ghost cursor-default opacity-60'>
+                Filtrar
+              </span>
+              <span title='Em breve' className='badge badge-ghost cursor-default opacity-60'>
+                Ordenar
+              </span>
+            </div>
+          </div>
+          <div className='overflow-x-auto'>
+            <table className='table'>
+              <thead>
+                <tr>
+                  <th className='text-label-md font-medium uppercase text-base-content/60'>
+                    Data
+                  </th>
+                  <th className='text-label-md font-medium uppercase text-base-content/60'>
+                    Descrição
+                  </th>
+                  <th className='text-label-md font-medium uppercase text-base-content/60'>
+                    Pagamento
+                  </th>
+                  <th className='text-right text-label-md font-medium uppercase text-base-content/60'>
+                    Valor
+                  </th>
+                  <th className='text-right text-label-md font-medium uppercase text-base-content/60'>
+                    Status
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {transactions.map((transaction) => (
+                  <tr key={transaction.id} className='hover'>
+                    <td className='text-body-md text-base-content/60'>
+                      {transaction.dateLabel}
+                    </td>
+                    <td className='text-body-md text-base-content'>
+                      <div className='flex items-center gap-3'>
+                        <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary/10 text-secondary'>
+                          <span className='material-symbols-outlined text-[18px]'>
+                            receipt_long
+                          </span>
+                        </div>
+                        <span className='truncate font-medium'>
+                          {transaction.description}
+                        </span>
+                      </div>
+                    </td>
+                    <td className='text-body-md text-base-content/60'>
+                      {transaction.paymentLabel}
+                      {transaction.paymentDetail && (
+                        <span className='ml-space-xs text-label-md opacity-60'>
+                          ({transaction.paymentDetail})
+                        </span>
+                      )}
+                    </td>
+                    <td
+                      className={`text-right text-body-md font-medium ${
+                        transaction.kind === 'receita'
+                          ? 'text-success'
+                          : 'text-base-content'
+                      }`}
+                    >
+                      {transaction.kind === 'receita' ? '+ ' : '- '}
+                      {currencyFormatter.format(transaction.amount)}
+                    </td>
+                    <td className='text-right'>
+                      <span className={`badge ${STATUS_BADGE[transaction.status]} badge-soft gap-1`}>
+                        {STATUS_LABEL[transaction.status]}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className='flex justify-center p-space-md'>
+            <span title='Em breve' className='cursor-default text-body-md text-primary opacity-60'>
+              Ver todas as transações
             </span>
           </div>
-        </div>
-        <div className='overflow-x-auto'>
-          <table className='w-full min-w-175 border-collapse text-left'>
-            <thead>
-              <tr className='bg-surface-container-low'>
-                <th className='p-space-md text-label-md font-medium uppercase text-on-surface-variant'>
-                  Data
-                </th>
-                <th className='p-space-md text-label-md font-medium uppercase text-on-surface-variant'>
-                  Descrição
-                </th>
-                <th className='p-space-md text-label-md font-medium uppercase text-on-surface-variant'>
-                  Pagamento
-                </th>
-                <th className='p-space-md text-right text-label-md font-medium uppercase text-on-surface-variant'>
-                  Valor
-                </th>
-                <th className='p-space-md text-right text-label-md font-medium uppercase text-on-surface-variant'>
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {transactions.map((transaction) => (
-                <tr
-                  key={transaction.id}
-                  className='border-t border-surface-container-high transition-colors hover:bg-surface-container-high'
-                >
-                  <td className='p-space-md text-body-md text-on-surface-variant'>
-                    {transaction.dateLabel}
-                  </td>
-                  <td className='flex items-center gap-3 p-space-md text-body-md text-on-surface'>
-                    <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary-container text-on-secondary-container'>
-                      <span className='material-symbols-outlined text-[18px]'>
-                        receipt_long
-                      </span>
-                    </div>
-                    <span className='truncate font-medium'>
-                      {transaction.description}
-                    </span>
-                  </td>
-                  <td className='p-space-md text-body-md text-on-surface-variant'>
-                    {transaction.paymentLabel}
-                    {transaction.paymentDetail && (
-                      <span className='ml-space-xs text-label-md opacity-60'>
-                        ({transaction.paymentDetail})
-                      </span>
-                    )}
-                  </td>
-                  <td
-                    className={`p-space-md text-right text-body-md font-medium ${
-                      transaction.kind === 'receita'
-                        ? 'text-success'
-                        : 'text-on-surface'
-                    }`}
-                  >
-                    {transaction.kind === 'receita' ? '+ ' : '- '}
-                    {currencyFormatter.format(transaction.amount)}
-                  </td>
-                  <td className='p-space-md text-right'>
-                    <span
-                      className={`inline-flex items-center gap-space-xs rounded-full px-space-sm py-unit text-label-md font-medium ${STATUS_CLASSES[transaction.status]}`}
-                    >
-                      <span className='h-1.5 w-1.5 rounded-full bg-current' />
-                      {STATUS_LABEL[transaction.status]}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className='flex justify-center p-space-md'>
-          <span
-            title='Em breve'
-            className='cursor-default text-body-md text-primary opacity-60'
-          >
-            Ver todas as transações
-          </span>
         </div>
       </div>
     </>
@@ -275,36 +256,29 @@ function TransactionsContent({
 function StatCard({
   label,
   value,
-  valueClass = 'text-on-surface',
+  valueClass = 'text-base-content',
 }: {
   label: string;
   value: string;
   valueClass?: string;
 }) {
   return (
-    <div className='rounded-xl bg-surface-container p-space-md shadow-sm'>
-      <span className='block text-label-md uppercase tracking-widest text-on-surface-variant'>
-        {label}
-      </span>
-      <div className={`mt-space-xs text-headline-md ${valueClass}`}>
-        {value}
-      </div>
+    <div className='stat'>
+      <span className='stat-title text-label-md uppercase tracking-widest'>{label}</span>
+      <div className={`stat-value text-headline-md ${valueClass}`}>{value}</div>
     </div>
   );
 }
 
 function LoadingSkeleton() {
   return (
-    <div className='flex animate-pulse flex-col gap-space-lg'>
+    <div className='flex flex-col gap-space-lg'>
       <div className='grid grid-cols-1 gap-space-md sm:grid-cols-2 lg:grid-cols-4'>
         {[0, 1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className='h-32 rounded-xl bg-surface-container-low shadow-sm'
-          />
+          <div key={i} className='skeleton h-32 w-full rounded-box' />
         ))}
       </div>
-      <div className='h-96 rounded-xl bg-surface-container-low shadow-sm' />
+      <div className='skeleton h-96 w-full rounded-box' />
     </div>
   );
 }
@@ -317,9 +291,9 @@ function ErrorState({
   onRetry: () => void;
 }) {
   return (
-    <div className='flex min-h-100 items-center justify-center rounded-xl p-space-lg'>
-      <div className='flex w-full max-w-lg flex-col items-center rounded-4xl border border-outline-variant/10 bg-surface-container/30 p-space-xl text-center shadow-xl backdrop-blur-sm'>
-        <div className='mb-space-lg flex h-24 w-24 items-center justify-center rounded-full bg-surface shadow-md'>
+    <div className='hero min-h-100 rounded-box bg-base-100 shadow-md'>
+      <div className='hero-content flex-col text-center'>
+        <div className='flex h-24 w-24 items-center justify-center rounded-full bg-error/10'>
           <span
             className='material-symbols-outlined text-[48px] text-error'
             style={{ fontVariationSettings: "'FILL' 1" }}
@@ -327,18 +301,12 @@ function ErrorState({
             error
           </span>
         </div>
-        <h2 className='mb-space-sm text-headline-lg tracking-tight text-on-surface'>
+        <h2 className='mt-space-lg text-headline-lg tracking-tight text-base-content'>
           Ocorreu um erro ao carregar suas transações
         </h2>
-        <p className='mb-space-xl max-w-sm text-body-lg text-on-surface-variant'>
-          {message}
-        </p>
-        <button
-          type='button'
-          onClick={onRetry}
-          className='flex items-center gap-space-sm rounded-xl bg-secondary-container px-space-xl py-space-md text-title-lg font-medium text-on-secondary-container shadow-sm transition-all hover:shadow-md active:scale-95 md:cursor-pointer'
-        >
-          <span className='material-symbols-outlined'>refresh</span>
+        <p className='max-w-sm text-body-lg text-base-content/60'>{message}</p>
+        <button type='button' onClick={onRetry} className='btn btn-outline btn-primary mt-space-sm'>
+          <span className='material-symbols-outlined text-[18px]'>refresh</span>
           Tentar Novamente
         </button>
       </div>
