@@ -103,6 +103,12 @@ export async function fetchCardTypes(): Promise<CardType[]> {
   return response.json();
 }
 
+/** The API returns money fields in cents. */
+type CardDetailsResponse = Omit<CreditCard, "creditLimit" | "currentInvoice"> & {
+  creditLimit: number;
+  currentInvoice: number;
+};
+
 export async function fetchCards(params: { walletId: string }): Promise<CreditCard[]> {
   const token = getStoredToken();
   if (!token) {
@@ -129,7 +135,12 @@ export async function fetchCards(params: { walletId: string }): Promise<CreditCa
     throw new AuthError(GENERIC_ERROR_MESSAGE);
   }
 
-  return response.json();
+  const cards: CardDetailsResponse[] = await response.json();
+  return cards.map((card) => ({
+    ...card,
+    creditLimit: card.creditLimit / 100,
+    currentInvoice: card.currentInvoice / 100,
+  }));
 }
 
 export async function createCard(payload: NewCardPayload): Promise<void> {
