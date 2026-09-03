@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { getWalletId, signOut, SessionExpiredError } from '@/lib/auth';
 import { fetchDashboard, type DashboardData } from '@/lib/dashboard';
 import { AppShell } from '@/components/layout/app-shell';
+import { NewExpenseModal } from '@/components/transactions/new-expense-modal';
 
 type ViewState = 'loading' | 'success' | 'empty' | 'error';
 
@@ -44,6 +45,8 @@ export function DashboardView() {
   const [state, setState] = useState<ViewState>('loading');
   const [data, setData] = useState<DashboardData | null>(null);
   const [errorMessage, setErrorMessage] = useState(GENERIC_ERROR_MESSAGE);
+  const [modalOpen, setModalOpen] = useState(false);
+  const walletId = getWalletId();
 
   // State updates happen inside the .then/.catch callbacks — i.e. once the
   // fetch's result comes back — never synchronously in `load` itself. The
@@ -119,64 +122,82 @@ export function DashboardView() {
     router.replace('/login');
   }
 
+  function handleCreateExpense() {
+    setModalOpen(false);
+    setState('loading');
+    load();
+  }
+
   return (
     <AppShell activePath='dashboard' onLogout={handleLogout}>
       <main className='flex w-full flex-col gap-space-lg px-space-md py-space-lg md:px-space-lg'>
-        <div className='flex flex-col gap-space-md md:flex-row md:items-center sm:justify-between'>
-          <div>
+        <div className='flex flex-col gap-space-md lg:flex-row lg:items-center sm:justify-between'>
+          <div className='min-w-fit'>
             <h1 className='text-headline-lg text-on-surface'>Dashboard</h1>
             <p className='text-body-lg text-on-surface-variant'>
               Visão geral das suas despesas.
             </p>
           </div>
-          <div className='w-full flex items-center gap-space-sm md:max-w-81.25'>
+          <div className='w-full justify-start flex flex-col gap-space-sm sm:flex-row sm:items-center lg:justify-end'>
+            <div className='w-full flex items-center gap-space-sm md:max-w-81.25'>
+              <button
+                type='button'
+                aria-label='Mês anterior'
+                disabled={state === 'loading'}
+                onClick={handlePrevMonth}
+                className='w-full flex h-10 max-w-10 items-center justify-center rounded-lg bg-surface-container text-on-surface transition-colors hover:bg-surface-container-high disabled:opacity-50 md:cursor-pointer'
+              >
+                <span className='material-symbols-outlined text-[20px]'>
+                  chevron_left
+                </span>
+              </button>
+              <select
+                value={month}
+                disabled={state === 'loading'}
+                onChange={(event) =>
+                  handleMonthChange(Number(event.target.value))
+                }
+                className='w-full rounded-lg border-none bg-surface-container px-space-md py-space-sm text-body-lg text-on-surface outline-none transition-colors focus:ring-0 disabled:opacity-50 md:cursor-pointer'
+              >
+                {MONTH_NAMES.map((name, index) => (
+                  <option key={name} value={index + 1}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={year}
+                disabled={state === 'loading'}
+                onChange={(event) =>
+                  handleYearChange(Number(event.target.value))
+                }
+                className='w-full rounded-lg border-none bg-surface-container px-space-md py-space-sm text-body-lg text-on-surface outline-none transition-colors focus:ring-0 disabled:opacity-50 md:cursor-pointer'
+              >
+                {yearOptions(now.getFullYear(), year).map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+              <button
+                type='button'
+                aria-label='Próximo mês'
+                disabled={state === 'loading'}
+                onClick={handleNextMonth}
+                className='w-full flex h-10 max-w-10 items-center justify-center rounded-lg bg-surface-container text-on-surface transition-colors hover:bg-surface-container-high disabled:opacity-50 md:cursor-pointer'
+              >
+                <span className='material-symbols-outlined text-[20px]'>
+                  chevron_right
+                </span>
+              </button>
+            </div>
             <button
               type='button'
-              aria-label='Mês anterior'
-              disabled={state === 'loading'}
-              onClick={handlePrevMonth}
-              className='w-full flex h-10 max-w-10 items-center justify-center rounded-lg bg-surface-container text-on-surface transition-colors hover:bg-surface-container-high disabled:opacity-50 md:cursor-pointer'
+              onClick={() => setModalOpen(true)}
+              className='min-w-47 flex items-center justify-center gap-space-sm self-start rounded-lg bg-primary px-space-lg py-space-sm text-body-lg font-medium text-on-primary shadow-sm transition-colors hover:bg-primary/90 md:cursor-pointer'
             >
-              <span className='material-symbols-outlined text-[20px]'>
-                chevron_left
-              </span>
-            </button>
-            <select
-              value={month}
-              disabled={state === 'loading'}
-              onChange={(event) =>
-                handleMonthChange(Number(event.target.value))
-              }
-              className='w-full rounded-lg border-none bg-surface-container px-space-md py-space-sm text-body-lg text-on-surface outline-none transition-colors focus:ring-0 disabled:opacity-50 md:cursor-pointer'
-            >
-              {MONTH_NAMES.map((name, index) => (
-                <option key={name} value={index + 1}>
-                  {name}
-                </option>
-              ))}
-            </select>
-            <select
-              value={year}
-              disabled={state === 'loading'}
-              onChange={(event) => handleYearChange(Number(event.target.value))}
-              className='w-full rounded-lg border-none bg-surface-container px-space-md py-space-sm text-body-lg text-on-surface outline-none transition-colors focus:ring-0 disabled:opacity-50 md:cursor-pointer'
-            >
-              {yearOptions(now.getFullYear(), year).map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-            </select>
-            <button
-              type='button'
-              aria-label='Próximo mês'
-              disabled={state === 'loading'}
-              onClick={handleNextMonth}
-              className='w-full flex h-10 max-w-10 items-center justify-center rounded-lg bg-surface-container text-on-surface transition-colors hover:bg-surface-container-high disabled:opacity-50 md:cursor-pointer'
-            >
-              <span className='material-symbols-outlined text-[20px]'>
-                chevron_right
-              </span>
+              <span className='material-symbols-outlined text-[18px]'>add</span>
+              Nova Despesa
             </button>
           </div>
         </div>
@@ -190,6 +211,13 @@ export function DashboardView() {
         )}
         {state === 'success' && data && <DashboardContent data={data} />}
       </main>
+
+      <NewExpenseModal
+        open={modalOpen}
+        walletId={walletId}
+        onClose={() => setModalOpen(false)}
+        onCreate={handleCreateExpense}
+      />
     </AppShell>
   );
 }
